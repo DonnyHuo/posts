@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Outlet, useNavigate, NavLink } from "react-router-dom";
 import { api } from "../lib/api";
-import { LogOut, Plus, Edit2, User as UserIcon } from "lucide-react";
-import PostList from "../components/PostList";
+import { LogOut, Edit2, User as UserIcon } from "lucide-react";
 import type { User } from "../types";
+import { LoadingSpinner } from "./LoadingSpinner";
 
-export default function Dashboard() {
+export default function Layout() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"my" | "all">("my");
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: "", avatar: "" });
   const navigate = useNavigate();
@@ -41,7 +40,7 @@ export default function Dashboard() {
     if (!user) return;
     try {
       const res = await api.patch(`/users/${user.id}`, editForm);
-      console.log("Update profile response:", res.data); // Debug: Check if avatar is returned
+      console.log("Update profile response:", res.data);
       setUser((prev) => (prev ? { ...prev, ...res.data } : null));
       setIsEditing(false);
     } catch (err) {
@@ -51,18 +50,14 @@ export default function Dashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Edit Profile Modal */}
       {isEditing && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-bold mb-4">Edit Profile</h3>
             <form onSubmit={handleUpdateProfile} className="space-y-4">
@@ -119,26 +114,30 @@ export default function Dashboard() {
             <div className="flex items-center gap-4">
               <h1 className="text-xl font-bold text-gray-800">Blog App</h1>
               <div className="hidden md:flex space-x-4 ml-8">
-                <button
-                  onClick={() => setActiveTab("my")}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    activeTab === "my"
-                      ? "bg-gray-100 text-gray-900"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
+                <NavLink
+                  to="/dashboard/my"
+                  className={({ isActive }) =>
+                    `px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive
+                        ? "bg-gray-100 text-gray-900"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`
+                  }
                 >
                   My Posts
-                </button>
-                <button
-                  onClick={() => setActiveTab("all")}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    activeTab === "all"
-                      ? "bg-gray-100 text-gray-900"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
+                </NavLink>
+                <NavLink
+                  to="/dashboard/all"
+                  className={({ isActive }) =>
+                    `px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive
+                        ? "bg-gray-100 text-gray-900"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`
+                  }
                 >
                   All Posts
-                </button>
+                </NavLink>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -178,31 +177,11 @@ export default function Dashboard() {
         </div>
       </nav>
 
+      {/* Main Content Area */}
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">
-              {activeTab === "my" ? "My Posts" : "Community Posts"}
-            </h2>
-            <p className="mt-1 text-gray-500">
-              {activeTab === "my"
-                ? "Manage and create your own content"
-                : "See what others are writing about"}
-            </p>
-          </div>
-          {activeTab === "my" && (
-            <Link
-              to="/posts/new"
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              <Plus className="-ml-1 mr-2 h-5 w-5" />
-              New Post
-            </Link>
-          )}
-        </div>
-
-        <PostList myPosts={activeTab === "my"} currentUser={user} />
+        <Outlet context={{ currentUser: user }} />
       </main>
     </div>
   );
 }
+

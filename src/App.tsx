@@ -7,8 +7,9 @@ import {
 } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
 import PostEditor from "./pages/PostEditor";
+import Layout from "./components/Layout";
+import PostFeed from "./pages/PostFeed";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const token = localStorage.getItem("token");
@@ -29,10 +30,14 @@ function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <Layout />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route index element={<Navigate to="my" replace />} />
+          <Route path="my" element={<PostFeed mode="my" />} />
+          <Route path="all" element={<PostFeed mode="all" />} />
+        </Route>
 
         <Route
           path="/posts/new"
@@ -52,7 +57,7 @@ function App() {
           }
         />
 
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/dashboard/my" replace />} />
       </Routes>
     </Router>
   );

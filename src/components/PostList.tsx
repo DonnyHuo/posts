@@ -4,6 +4,7 @@ import type { Post, User } from "../types";
 import { Edit, Trash2, Eye, EyeOff, MessageSquare } from "lucide-react";
 import { Link } from "react-router-dom";
 import CommentSection from "./CommentSection";
+import { LoadingSpinner } from "./LoadingSpinner";
 
 interface PostListProps {
   myPosts?: boolean;
@@ -23,7 +24,14 @@ export default function PostList({
       try {
         const endpoint = myPosts ? "/posts/my" : "/posts";
         const res = await api.get(endpoint);
-        setPosts(res.data.data || res.data);
+        let fetchedPosts = res.data.data || res.data;
+
+        // If viewing public posts, filter out unpublished ones
+        if (!myPosts) {
+          fetchedPosts = fetchedPosts.filter((post: Post) => post.published);
+        }
+
+        setPosts(fetchedPosts);
       } catch (err) {
         console.error("Failed to fetch posts", err);
       } finally {
@@ -71,7 +79,7 @@ export default function PostList({
     );
   };
 
-  if (loading) return <div>Loading posts...</div>;
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="space-y-4">
