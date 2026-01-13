@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { LogIn } from "lucide-react";
+import { AuthBackground } from "../components/AuthBackground";
 
 export default function Login() {
   const { register, handleSubmit } = useForm();
@@ -36,8 +37,9 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
+      <AuthBackground />
+      <div className="max-w-md w-full space-y-8 bg-white/70 backdrop-blur-xl p-8 rounded-2xl shadow-xl border border-white/50">
         <div>
           <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-indigo-100">
             <LogIn className="h-6 w-6 text-indigo-600" />
@@ -52,7 +54,7 @@ export default function Login() {
               <input
                 {...register("email", { required: true })}
                 type="email"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white/50"
                 placeholder="Email address"
               />
             </div>
@@ -60,7 +62,7 @@ export default function Login() {
               <input
                 {...register("password", { required: true })}
                 type="password"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white/50"
                 placeholder="Password"
               />
             </div>
@@ -74,7 +76,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-all duration-200 shadow-md hover:shadow-lg"
             >
               {isLoading ? "Signing in..." : "Sign in"}
             </button>
@@ -82,7 +84,7 @@ export default function Login() {
           <div className="text-center">
             <Link
               to="/register"
-              className="text-indigo-600 hover:text-indigo-500"
+              className="text-indigo-600 hover:text-indigo-500 font-medium"
             >
               Don't have an account? Sign up
             </Link>
