@@ -1,10 +1,19 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate, NavLink } from "react-router-dom";
 import { api } from "../lib/api";
-import { LogOut, Edit2, User as UserIcon, Menu, X } from "lucide-react";
+import {
+  LogOut,
+  Edit2,
+  User as UserIcon,
+  Menu,
+  X,
+  Sun,
+  Moon,
+} from "lucide-react";
 import type { User } from "../types";
 import { LoadingSpinner } from "./LoadingSpinner";
+import { AnimatePresence, motion } from "framer-motion";
+import { useTheme } from "../hooks/useTheme";
 
 export default function Layout() {
   const [user, setUser] = useState<User | null>(null);
@@ -12,6 +21,7 @@ export default function Layout() {
   const [isEditing, setIsEditing] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [editForm, setEditForm] = useState({ name: "", avatar: "" });
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -56,15 +66,17 @@ export default function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       {/* Edit Profile Modal */}
       {isEditing && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-bold mb-4">Edit Profile</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-bold mb-4 dark:text-white">
+              Edit Profile
+            </h3>
             <form onSubmit={handleUpdateProfile} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Name
                 </label>
                 <input
@@ -73,11 +85,11 @@ export default function Layout() {
                   onChange={(e) =>
                     setEditForm({ ...editForm, name: e.target.value })
                   }
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Avatar URL
                 </label>
                 <input
@@ -86,7 +98,7 @@ export default function Layout() {
                   onChange={(e) =>
                     setEditForm({ ...editForm, avatar: e.target.value })
                   }
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
                   placeholder="https://example.com/avatar.jpg"
                 />
               </div>
@@ -94,7 +106,7 @@ export default function Layout() {
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 rounded-md"
                 >
                   Cancel
                 </button>
@@ -110,27 +122,29 @@ export default function Layout() {
         </div>
       )}
 
-      <nav className="bg-white shadow-sm sticky top-0 z-10">
+      <nav className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-10 transition-colors duration-200">
         <div className="w-full mx-auto px-4 box-border max-w-7xl">
           <div className="flex justify-between h-16">
             <div className="flex items-center gap-4">
               {/* Mobile menu button */}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
+                className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
               >
                 {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
 
-              <h1 className="text-xl font-bold text-gray-800">Blog App</h1>
+              <h1 className="text-xl font-bold text-gray-800 dark:text-white">
+                Blog App
+              </h1>
               <div className="hidden md:flex space-x-4 ml-8">
                 <NavLink
                   to="/dashboard/my"
                   className={({ isActive }) =>
                     `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       isActive
-                        ? "bg-gray-100 text-gray-900"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                        ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700"
                     }`
                   }
                 >
@@ -141,8 +155,8 @@ export default function Layout() {
                   className={({ isActive }) =>
                     `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       isActive
-                        ? "bg-gray-100 text-gray-900"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                        ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700"
                     }`
                   }
                 >
@@ -151,6 +165,18 @@ export default function Layout() {
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-full text-gray-400 hover:text-yellow-500 dark:hover:text-yellow-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                title={
+                  theme === "dark"
+                    ? "Switch to light mode"
+                    : "Switch to dark mode"
+                }
+              >
+                {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
+
               <div className="flex items-center gap-2">
                 {user?.avatar ? (
                   <img
@@ -163,21 +189,21 @@ export default function Layout() {
                     <UserIcon size={16} />
                   </div>
                 )}
-                <span className="text-sm text-gray-700 hidden sm:inline font-medium">
+                <span className="text-sm text-gray-700 dark:text-gray-300 hidden sm:inline font-medium">
                   {user?.name || user?.email}
                 </span>
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="hidden sm:block p-1 text-gray-400 hover:text-indigo-600 rounded-full hover:bg-gray-100 transition-colors"
+                  className="hidden sm:block p-1 text-gray-400 hover:text-indigo-600 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   title="Edit Profile"
                 >
                   <Edit2 size={16} />
                 </button>
               </div>
-              <div className="hidden sm:block h-6 w-px bg-gray-200 mx-2"></div>
+              <div className="hidden sm:block h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
               <button
                 onClick={handleLogout}
-                className="hidden sm:flex p-2 text-gray-400 hover:text-gray-600 items-center gap-2"
+                className="hidden sm:flex p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 items-center gap-2"
                 title="Sign out"
               >
                 <LogOut className="h-5 w-5" />
@@ -194,7 +220,7 @@ export default function Layout() {
               animate={{ height: "calc(100vh - 4rem)", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="md:hidden fixed top-16 left-0 w-full bg-white border-t border-gray-200 shadow-lg z-20 overflow-y-auto"
+              className="md:hidden fixed top-16 left-0 w-full bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg z-20 overflow-y-auto"
             >
               <div className="px-2 pt-2 pb-3 space-y-1">
                 <NavLink
@@ -203,8 +229,8 @@ export default function Layout() {
                   className={({ isActive }) =>
                     `block px-3 py-2 rounded-md text-base font-medium ${
                       isActive
-                        ? "bg-indigo-50 text-indigo-700"
-                        : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                        ? "bg-indigo-50 text-indigo-700 dark:bg-gray-700 dark:text-white"
+                        : "text-gray-700 dark:text-gray-300 hover:text-gray-900 hover:bg-gray-50 dark:hover:text-white dark:hover:bg-gray-700"
                     }`
                   }
                 >
@@ -216,20 +242,20 @@ export default function Layout() {
                   className={({ isActive }) =>
                     `block px-3 py-2 rounded-md text-base font-medium ${
                       isActive
-                        ? "bg-indigo-50 text-indigo-700"
-                        : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                        ? "bg-indigo-50 text-indigo-700 dark:bg-gray-700 dark:text-white"
+                        : "text-gray-700 dark:text-gray-300 hover:text-gray-900 hover:bg-gray-50 dark:hover:text-white dark:hover:bg-gray-700"
                     }`
                   }
                 >
                   All Posts
                 </NavLink>
-                <div className="border-t border-gray-200 my-2"></div>
+                <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
                 <button
                   onClick={() => {
                     setIsMenuOpen(false);
                     setIsEditing(true);
                   }}
-                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 flex items-center gap-2"
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 hover:bg-gray-50 dark:hover:text-white dark:hover:bg-gray-700 flex items-center gap-2"
                 >
                   <Edit2 size={18} />
                   Edit Profile
@@ -239,7 +265,7 @@ export default function Layout() {
                     setIsMenuOpen(false);
                     handleLogout();
                   }}
-                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 flex items-center gap-2"
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 hover:bg-gray-50 dark:hover:text-white dark:hover:bg-gray-700 flex items-center gap-2"
                 >
                   <LogOut size={18} />
                   Sign out

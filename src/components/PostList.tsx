@@ -89,29 +89,29 @@ export default function PostList({
         posts.map((post) => (
           <div
             key={post.id}
-            className="bg-white shadow rounded-lg p-4 sm:p-6 border border-gray-100 transition-all"
+            className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 sm:p-6 border border-gray-100 dark:border-gray-700 transition-all"
           >
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
               <div className="flex-1 w-full">
-                <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2 flex-wrap">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2 flex-wrap">
                   {post.title}
                   {!post.published && (
-                    <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full shrink-0">
+                    <span className="px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full shrink-0">
                       Draft
                     </span>
                   )}
                 </h3>
-                <p className="mt-2 text-gray-600 line-clamp-3">
+                <p className="mt-2 text-gray-600 dark:text-gray-300 line-clamp-3">
                   {post.content}
                 </p>
-                <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between text-sm text-gray-500 gap-3">
+                <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between text-sm text-gray-500 dark:text-gray-400 gap-3">
                   <span>
                     By {post.author?.name || "Unknown"} •{" "}
                     {new Date(post.createdAt).toLocaleString()}
                   </span>
                   <button
                     onClick={() => toggleComments(post.id)}
-                    className="flex items-center gap-1 hover:text-indigo-600 transition-colors self-start sm:self-auto"
+                    className="flex items-center gap-1 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors self-start sm:self-auto"
                   >
                     <MessageSquare size={16} />
                     {post._count?.comments || 0}{" "}
@@ -124,8 +124,10 @@ export default function PostList({
                 <div className="flex space-x-2 ml-0 sm:ml-4 self-end sm:self-start">
                   <button
                     onClick={() => handleTogglePublish(post)}
-                    className={`p-2 rounded-full hover:bg-gray-100 ${
-                      post.published ? "text-green-600" : "text-gray-400"
+                    className={`p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                      post.published
+                        ? "text-green-600 dark:text-green-400"
+                        : "text-gray-400 dark:text-gray-500"
                     }`}
                     title={post.published ? "Unpublish" : "Publish"}
                   >
@@ -133,14 +135,14 @@ export default function PostList({
                   </button>
                   <Link
                     to={`/posts/edit/${post.id}`}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"
+                    className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full"
                     title="Edit"
                   >
                     <Edit size={20} />
                   </Link>
                   <button
                     onClick={() => handleDelete(post.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-full"
+                    className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
                     title="Delete"
                   >
                     <Trash2 size={20} />

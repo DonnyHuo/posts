@@ -15,10 +15,10 @@ export default function PostFeed({ mode }: PostFeedProps) {
     <>
       <div className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
             {isMyPosts ? "My Posts" : "Community Posts"}
           </h2>
-          <p className="mt-1 text-gray-500">
+          <p className="mt-1 text-gray-500 dark:text-gray-400">
             {isMyPosts
               ? "Manage and create your own content"
               : "See what others are writing about"}

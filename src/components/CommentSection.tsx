@@ -59,8 +59,8 @@ export default function CommentSection({
   };
 
   return (
-    <div className="mt-8 border-t border-gray-200 pt-6">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">
+    <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
         Comments ({comments.length})
       </h3>
 
@@ -70,14 +70,14 @@ export default function CommentSection({
           <img
             src={currentUser.avatar || "https://via.placeholder.com/40"}
             alt="Avatar"
-            className="h-10 w-10 rounded-full bg-gray-200"
+            className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700"
           />
           <div className="flex-1">
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Write a comment..."
-              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 text-sm dark:bg-gray-700 dark:text-white"
               rows={2}
             />
             <div className="mt-2 flex justify-end">
@@ -93,9 +93,9 @@ export default function CommentSection({
           </div>
         </form>
       ) : (
-        <div className="mb-8 text-center bg-gray-50 p-4 rounded-lg">
+        <div className="mb-8 text-center bg-gray-50 dark:bg-gray-700 p-4 rounded-lg dark:text-gray-300">
           Please{" "}
-          <a href="/login" className="text-indigo-600 hover:underline">
+          <a href="/login" className="text-indigo-600 dark:text-indigo-400 hover:underline">
             sign in
           </a>{" "}
           to comment.
@@ -108,25 +108,25 @@ export default function CommentSection({
           <div key={comment.id} className="flex space-x-4">
             <div className="shrink-0">
               <img
-                className="h-10 w-10 rounded-full bg-gray-200"
+                className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700"
                 src={comment.author?.avatar || "https://via.placeholder.com/40"}
                 alt={comment.author?.name}
               />
             </div>
-            <div className="flex-1 bg-gray-50 rounded-lg p-4">
+            <div className="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
               <div className="flex items-center justify-between mb-1">
-                <h4 className="text-sm font-bold text-gray-900">
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white">
                   {comment.author?.name}
                 </h4>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     {new Date(comment.createdAt).toLocaleString()}
                   </span>
                   {(currentUser?.id === comment.authorId ||
                     currentUser?.role === "ADMIN") && (
                     <button
                       onClick={() => handleDelete(comment.id)}
-                      className="text-gray-400 hover:text-red-500"
+                      className="text-gray-400 hover:text-red-500 dark:hover:text-red-400"
                       title="Delete"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -134,7 +134,7 @@ export default function CommentSection({
                   )}
                 </div>
               </div>
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">
+              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                 {comment.content}
               </p>
             </div>
