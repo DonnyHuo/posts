@@ -1,7 +1,8 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate, NavLink } from "react-router-dom";
 import { api } from "../lib/api";
-import { LogOut, Edit2, User as UserIcon } from "lucide-react";
+import { LogOut, Edit2, User as UserIcon, Menu, X } from "lucide-react";
 import type { User } from "../types";
 import { LoadingSpinner } from "./LoadingSpinner";
 
@@ -9,6 +10,7 @@ export default function Layout() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [editForm, setEditForm] = useState({ name: "", avatar: "" });
   const navigate = useNavigate();
 
@@ -109,18 +111,26 @@ export default function Layout() {
       )}
 
       <nav className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full mx-auto px-4 box-border max-w-7xl">
           <div className="flex justify-between h-16">
             <div className="flex items-center gap-4">
+              {/* Mobile menu button */}
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
+              >
+                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+
               <h1 className="text-xl font-bold text-gray-800">Blog App</h1>
               <div className="hidden md:flex space-x-4 ml-8">
                 <NavLink
                   to="/dashboard/my"
                   className={({ isActive }) =>
-                    `px-3 py-2 rounded-md text-sm font-medium ${
+                    `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       isActive
                         ? "bg-gray-100 text-gray-900"
-                        : "text-gray-600 hover:text-gray-900"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                     }`
                   }
                 >
@@ -129,10 +139,10 @@ export default function Layout() {
                 <NavLink
                   to="/dashboard/all"
                   className={({ isActive }) =>
-                    `px-3 py-2 rounded-md text-sm font-medium ${
+                    `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       isActive
                         ? "bg-gray-100 text-gray-900"
-                        : "text-gray-600 hover:text-gray-900"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                     }`
                   }
                 >
@@ -140,7 +150,7 @@ export default function Layout() {
                 </NavLink>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <div className="flex items-center gap-2">
                 {user?.avatar ? (
                   <img
@@ -158,16 +168,16 @@ export default function Layout() {
                 </span>
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="p-1 text-gray-400 hover:text-indigo-600 rounded-full hover:bg-gray-100 transition-colors"
+                  className="hidden sm:block p-1 text-gray-400 hover:text-indigo-600 rounded-full hover:bg-gray-100 transition-colors"
                   title="Edit Profile"
                 >
                   <Edit2 size={16} />
                 </button>
               </div>
-              <div className="h-6 w-px bg-gray-200 mx-2"></div>
+              <div className="hidden sm:block h-6 w-px bg-gray-200 mx-2"></div>
               <button
                 onClick={handleLogout}
-                className="p-2 text-gray-400 hover:text-gray-600 flex items-center gap-2"
+                className="hidden sm:flex p-2 text-gray-400 hover:text-gray-600 items-center gap-2"
                 title="Sign out"
               >
                 <LogOut className="h-5 w-5" />
@@ -175,13 +185,75 @@ export default function Layout() {
             </div>
           </div>
         </div>
+
+        {/* Mobile menu */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "calc(100vh - 4rem)", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="md:hidden fixed top-16 left-0 w-full bg-white border-t border-gray-200 shadow-lg z-20 overflow-y-auto"
+            >
+              <div className="px-2 pt-2 pb-3 space-y-1">
+                <NavLink
+                  to="/dashboard/my"
+                  onClick={() => setIsMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `block px-3 py-2 rounded-md text-base font-medium ${
+                      isActive
+                        ? "bg-indigo-50 text-indigo-700"
+                        : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                    }`
+                  }
+                >
+                  My Posts
+                </NavLink>
+                <NavLink
+                  to="/dashboard/all"
+                  onClick={() => setIsMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `block px-3 py-2 rounded-md text-base font-medium ${
+                      isActive
+                        ? "bg-indigo-50 text-indigo-700"
+                        : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                    }`
+                  }
+                >
+                  All Posts
+                </NavLink>
+                <div className="border-t border-gray-200 my-2"></div>
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    setIsEditing(true);
+                  }}
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 flex items-center gap-2"
+                >
+                  <Edit2 size={18} />
+                  Edit Profile
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 flex items-center gap-2"
+                >
+                  <LogOut size={18} />
+                  Sign out
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <main className="max-w-7xl w-full mx-auto py-8 p-4 box-border">
         <Outlet context={{ currentUser: user }} />
       </main>
     </div>
   );
 }
-

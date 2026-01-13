@@ -48,9 +48,9 @@ export default function PostEditor() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        <div className="mb-8 flex items-center">
+        <div className="mb-6 sm:mb-8 flex items-center">
           <button
             onClick={() => navigate(-1)}
             className="mr-4 p-2 rounded-full hover:bg-gray-200"

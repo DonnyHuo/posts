@@ -89,14 +89,14 @@ export default function PostList({
         posts.map((post) => (
           <div
             key={post.id}
-            className="bg-white shadow rounded-lg p-6 border border-gray-100 transition-all"
+            className="bg-white shadow rounded-lg p-4 sm:p-6 border border-gray-100 transition-all"
           >
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+              <div className="flex-1 w-full">
+                <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2 flex-wrap">
                   {post.title}
                   {!post.published && (
-                    <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">
+                    <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full shrink-0">
                       Draft
                     </span>
                   )}
@@ -104,14 +104,14 @@ export default function PostList({
                 <p className="mt-2 text-gray-600 line-clamp-3">
                   {post.content}
                 </p>
-                <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
+                <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between text-sm text-gray-500 gap-3">
                   <span>
                     By {post.author?.name || "Unknown"} •{" "}
                     {new Date(post.createdAt).toLocaleString()}
                   </span>
                   <button
                     onClick={() => toggleComments(post.id)}
-                    className="flex items-center gap-1 hover:text-indigo-600 transition-colors"
+                    className="flex items-center gap-1 hover:text-indigo-600 transition-colors self-start sm:self-auto"
                   >
                     <MessageSquare size={16} />
                     {post._count?.comments || 0}{" "}
@@ -121,7 +121,7 @@ export default function PostList({
               </div>
 
               {myPosts && (
-                <div className="flex space-x-2 ml-4">
+                <div className="flex space-x-2 ml-0 sm:ml-4 self-end sm:self-start">
                   <button
                     onClick={() => handleTogglePublish(post)}
                     className={`p-2 rounded-full hover:bg-gray-100 ${
