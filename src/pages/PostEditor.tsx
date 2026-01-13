@@ -13,7 +13,7 @@ interface PostFormData {
 export default function PostEditor() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { register, handleSubmit, reset, setValue } = useForm<PostFormData>();
+  const { register, handleSubmit, setValue } = useForm<PostFormData>();
   const [isLoading, setIsLoading] = useState(false);
   const isEditMode = !!id;
 

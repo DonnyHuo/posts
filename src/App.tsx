@@ -1,11 +1,17 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import PostEditor from './pages/PostEditor';
+import type { ReactNode } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+import PostEditor from "./pages/PostEditor";
 
-function ProtectedRoute({ children }: { children: JSX.Element }) {
-  const token = localStorage.getItem('token');
+function ProtectedRoute({ children }: { children: ReactNode }) {
+  const token = localStorage.getItem("token");
   if (!token) {
     return <Navigate to="/login" replace />;
   }
@@ -18,7 +24,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        
+
         <Route
           path="/dashboard"
           element={
@@ -27,7 +33,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/posts/new"
           element={
@@ -36,7 +42,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/posts/edit/:id"
           element={

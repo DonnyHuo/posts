@@ -5,7 +5,7 @@ import { api } from '../lib/api';
 import { UserPlus } from 'lucide-react';
 
 export default function Register() {
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit } = useForm();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
