@@ -18,19 +18,18 @@ export default function PostList({
   const [loading, setLoading] = useState(true);
   const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
 
-  const fetchPosts = async () => {
-    try {
-      const endpoint = myPosts ? "/posts/my" : "/posts";
-      const res = await api.get(endpoint);
-      setPosts(res.data.data || res.data);
-    } catch (err) {
-      console.error("Failed to fetch posts", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const endpoint = myPosts ? "/posts/my" : "/posts";
+        const res = await api.get(endpoint);
+        setPosts(res.data.data || res.data);
+      } catch (err) {
+        console.error("Failed to fetch posts", err);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchPosts();
   }, [myPosts]);
 
@@ -97,10 +96,10 @@ export default function PostList({
                 <p className="mt-2 text-gray-600 line-clamp-3">
                   {post.content}
                 </p>
-                <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
+                <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
                   <span>
                     By {post.author?.name || "Unknown"} •{" "}
-                    {new Date(post.createdAt).toLocaleDateString()}
+                    {new Date(post.createdAt).toLocaleString()}
                   </span>
                   <button
                     onClick={() => toggleComments(post.id)}
