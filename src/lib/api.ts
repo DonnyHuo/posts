@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// 你的后端地址
-export const API_URL = 'https://backed-blond.vercel.app';
+// Use environment variable for API URL, fallback to local development URL
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export const api = axios.create({
   baseURL: API_URL,

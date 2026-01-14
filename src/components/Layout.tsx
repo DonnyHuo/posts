@@ -178,20 +178,25 @@ export default function Layout() {
               </button>
 
               <div className="flex items-center gap-2">
-                {user?.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt="Avatar"
-                    className="h-8 w-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
-                    <UserIcon size={16} />
-                  </div>
-                )}
-                <span className="text-sm text-gray-700 dark:text-gray-300 hidden sm:inline font-medium">
-                  {user?.name || user?.email}
-                </span>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                >
+                  {user?.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt="Avatar"
+                      className="h-8 w-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                      <UserIcon size={16} />
+                    </div>
+                  )}
+                  <span className="text-sm text-gray-700 dark:text-gray-300 hidden sm:inline font-medium">
+                    {user?.name || user?.email}
+                  </span>
+                </button>
                 <button
                   onClick={() => setIsEditing(true)}
                   className="hidden sm:block p-1 text-gray-400 hover:text-indigo-600 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -250,16 +255,6 @@ export default function Layout() {
                   All Posts
                 </NavLink>
                 <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
-                <button
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    setIsEditing(true);
-                  }}
-                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 hover:bg-gray-50 dark:hover:text-white dark:hover:bg-gray-700 flex items-center gap-2"
-                >
-                  <Edit2 size={18} />
-                  Edit Profile
-                </button>
                 <button
                   onClick={() => {
                     setIsMenuOpen(false);
