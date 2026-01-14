@@ -21,7 +21,7 @@ const CLOUDINARY_CONFIG = {
 export default function PostEditor() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<PostFormData>({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<PostFormData>({
     mode: 'onChange',
   });
   const [isLoading, setIsLoading] = useState(false);
