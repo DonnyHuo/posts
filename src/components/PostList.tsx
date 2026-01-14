@@ -1,45 +1,169 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { api } from "../lib/api";
-import type { Post, User } from "../types";
-import { Edit, Trash2, Eye, EyeOff, MessageSquare } from "lucide-react";
-import { Link } from "react-router-dom";
-import CommentSection from "./CommentSection";
+import type { Post } from "../types";
+import {
+  Edit,
+  Trash2,
+  Eye,
+  EyeOff,
+  Heart,
+  User as UserIcon,
+} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { LoadingSpinner } from "./LoadingSpinner";
+import { motion } from "framer-motion";
 
 interface PostListProps {
   myPosts?: boolean;
-  currentUser?: User | null;
+  likedPosts?: boolean;
+  favoritedPosts?: boolean;
+  commentedPosts?: boolean;
+  searchKeyword?: string;
+  publishFilter?: "all" | "published" | "draft";
 }
+
+const PAGE_SIZE = 8;
 
 export default function PostList({
   myPosts = false,
-  currentUser,
+  likedPosts = false,
+  favoritedPosts = false,
+  commentedPosts = false,
+  searchKeyword = "",
+  publishFilter,
 }: PostListProps) {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
+  // Reset pagination when filters change
   useEffect(() => {
-    const fetchPosts = async () => {
+    setPosts([]);
+    setPage(1);
+    setHasMore(true);
+    setLoading(true);
+  }, [
+    myPosts,
+    likedPosts,
+    favoritedPosts,
+    commentedPosts,
+    searchKeyword,
+    publishFilter,
+  ]);
+
+  const fetchPosts = useCallback(
+    async (pageNum: number, reset: boolean = false) => {
       try {
-        const endpoint = myPosts ? "/posts/my" : "/posts";
-        const res = await api.get(endpoint);
+        let endpoint = "/posts";
+        if (myPosts) endpoint = "/posts/my";
+        else if (likedPosts) endpoint = "/posts/liked";
+        else if (favoritedPosts) endpoint = "/posts/favorited";
+        else if (commentedPosts) endpoint = "/posts/commented";
+
+        const res = await api.get(endpoint, {
+          params: {
+            page: pageNum,
+            limit: PAGE_SIZE,
+          },
+        });
+
         let fetchedPosts = res.data.data || res.data;
 
+        // Handle pagination response format
+        if (res.data.data && Array.isArray(res.data.data)) {
+          fetchedPosts = res.data.data;
+          setHasMore(fetchedPosts.length === PAGE_SIZE);
+        } else if (Array.isArray(res.data)) {
+          fetchedPosts = res.data;
+          setHasMore(fetchedPosts.length === PAGE_SIZE);
+        } else {
+          fetchedPosts = [];
+          setHasMore(false);
+        }
+
         // If viewing public posts, filter out unpublished ones
-        if (!myPosts) {
+        if (!myPosts && !likedPosts && !favoritedPosts && !commentedPosts) {
           fetchedPosts = fetchedPosts.filter((post: Post) => post.published);
         }
 
-        setPosts(fetchedPosts);
+        // Apply publish filter for my posts
+        if (myPosts && publishFilter) {
+          if (publishFilter === "published") {
+            fetchedPosts = fetchedPosts.filter((post: Post) => post.published);
+          } else if (publishFilter === "draft") {
+            fetchedPosts = fetchedPosts.filter((post: Post) => !post.published);
+          }
+          // "all" means no filtering
+        }
+
+        if (reset) {
+          setPosts(fetchedPosts);
+        } else {
+          setPosts((prev) => [...prev, ...fetchedPosts]);
+        }
       } catch (err) {
         console.error("Failed to fetch posts", err);
+        setHasMore(false);
       } finally {
         setLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [myPosts, likedPosts, favoritedPosts, commentedPosts, publishFilter]
+  );
+
+  // Initial load
+  useEffect(() => {
+    if (page === 1) {
+      if (searchKeyword.trim()) {
+        // When searching, load all posts for client-side filtering
+        fetchPosts(1, true);
+      } else {
+        fetchPosts(1, true);
+      }
+    }
+  }, [page, fetchPosts, searchKeyword]);
+
+  // Load more when page changes (only when not searching)
+  useEffect(() => {
+    if (page > 1 && !searchKeyword.trim()) {
+      setLoadingMore(true);
+      fetchPosts(page, false);
+    }
+  }, [page, fetchPosts, searchKeyword]);
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          hasMore &&
+          !loadingMore &&
+          !loading &&
+          !searchKeyword.trim()
+        ) {
+          setPage((prev) => prev + 1);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
       }
     };
-    fetchPosts();
-  }, [myPosts]);
+  }, [hasMore, loadingMore, loading, searchKeyword]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this post?")) return;
@@ -60,108 +184,260 @@ export default function PostList({
     }
   };
 
-  const toggleComments = (postId: string) => {
-    setExpandedPostId(expandedPostId === postId ? null : postId);
+  const handleToggleLike = async (post: Post) => {
+    try {
+      const res = await api.post(`/posts/${post.id}/like`);
+      setPosts(
+        posts.map((p) => {
+          if (p.id !== post.id) return p;
+          return {
+            ...p,
+            isLiked: res.data.liked,
+            _count: {
+              ...p._count,
+              comments: p._count?.comments || 0,
+              likes: (p._count?.likes || 0) + (res.data.liked ? 1 : -1),
+              favorites: p._count?.favorites || 0,
+            },
+          };
+        })
+      );
+    } catch {
+      alert("Please login to like posts");
+    }
   };
 
-  const handleCommentChange = (postId: string, delta: number) => {
-    setPosts(
-      posts.map((post) => {
-        if (post.id !== postId) return post;
-        return {
-          ...post,
-          _count: {
-            ...post._count,
-            comments: (post._count?.comments || 0) + delta,
-          },
-        };
+  // Filter posts by search keyword (client-side filtering for search)
+  const filteredPosts = searchKeyword.trim()
+    ? posts.filter((post) => {
+        const keyword = searchKeyword.toLowerCase();
+        return (
+          post.title.toLowerCase().includes(keyword) ||
+          post.content.toLowerCase().includes(keyword) ||
+          post.author?.name?.toLowerCase().includes(keyword)
+        );
       })
-    );
-  };
+    : posts;
 
-  if (loading) return <LoadingSpinner />;
+  if (loading && posts.length === 0) {
+    return <LoadingSpinner />;
+  }
 
   return (
-    <div className="space-y-4">
-      {posts.length === 0 ? (
-        <div className="text-center py-10 text-gray-500">No posts found</div>
-      ) : (
-        posts.map((post) => (
-          <div
-            key={post.id}
-            className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 sm:p-6 border border-gray-100 dark:border-gray-700 transition-all"
-          >
-            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-              <div className="flex-1 w-full">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2 flex-wrap">
-                  {post.title}
-                  {!post.published && (
-                    <span className="px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full shrink-0">
+    <>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-6">
+        {filteredPosts.length === 0 ? (
+          <div className="col-span-full text-center py-20 bg-white dark:bg-[#161616] rounded-2xl border border-slate-200 dark:border-slate-800">
+            <div className="text-6xl mb-4 opacity-50">
+              {searchKeyword.trim() ? "🔍" : "📝"}
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+              {searchKeyword.trim() ? "No Results Found" : "Nothing Here Yet"}
+            </h3>
+            <p className="text-slate-500 dark:text-slate-400">
+              {searchKeyword.trim()
+                ? `No posts match "${searchKeyword}"`
+                : likedPosts
+                ? "You haven't liked any posts yet!"
+                : favoritedPosts
+                ? "You haven't favorited any posts yet!"
+                : commentedPosts
+                ? "You haven't commented on any posts yet!"
+                : "Be the first to share your thoughts!"}
+            </p>
+          </div>
+        ) : (
+          filteredPosts.map((post, index) => (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              key={post.id}
+              onClick={() => {
+                navigate(`/posts/${post.id}`);
+              }}
+              className={`group flex flex-col bg-white dark:bg-[#161616] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-all hover:shadow-2xl hover:shadow-slate-200/50 dark:hover:shadow-black/50 cursor-pointer ${
+                !post.published
+                  ? "opacity-75 border-dashed border-slate-300 dark:border-slate-600"
+                  : ""
+              }`}
+            >
+              {/* Card Header / Cover Image */}
+              <div className="h-48 sm:h-56 lg:h-64 relative overflow-hidden">
+                {post.coverUrls && post.coverUrls.length > 0 ? (
+                  <>
+                    <img
+                      src={post.coverUrls[0]}
+                      alt={post.title}
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                      onError={(e) => {
+                        // Fallback to gradient if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = "none";
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.className +=
+                            " bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800";
+                        }
+                      }}
+                    />
+                    {/* Overlay for better text readability */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+
+                    {/* Multi-image indicator */}
+                    {post.coverUrls.length > 1 && (
+                      <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-black/60 backdrop-blur-sm text-white text-[10px] px-1.5 py-0.5 rounded">
+                        <svg
+                          className="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                        {post.coverUrls.length}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="h-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800" />
+                )}
+
+                {/* Draft Badge - only show for unpublished posts */}
+                {!post.published && (
+                  <div className="absolute top-3 sm:top-4 right-3 sm:right-4 z-10">
+                    <span className="bg-yellow-100 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded uppercase tracking-wide border border-yellow-200 dark:border-yellow-500/20 backdrop-blur-sm">
                       Draft
                     </span>
-                  )}
-                </h3>
-                <p className="mt-2 text-gray-600 dark:text-gray-300 line-clamp-3">
-                  {post.content}
-                </p>
-                <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between text-sm text-gray-500 dark:text-gray-400 gap-3">
-                  <span>
-                    By {post.author?.name || "Unknown"} •{" "}
-                    {new Date(post.createdAt).toLocaleString()}
-                  </span>
-                  <button
-                    onClick={() => toggleComments(post.id)}
-                    className="flex items-center gap-1 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors self-start sm:self-auto"
-                  >
-                    <MessageSquare size={16} />
-                    {post._count?.comments || 0}{" "}
-                    {expandedPostId === post.id ? "Hide Comments" : "Comments"}
-                  </button>
-                </div>
+                  </div>
+                )}
               </div>
 
-              {myPosts && (
-                <div className="flex space-x-2 ml-0 sm:ml-4 self-end sm:self-start">
-                  <button
-                    onClick={() => handleTogglePublish(post)}
-                    className={`p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                      post.published
-                        ? "text-green-600 dark:text-green-400"
-                        : "text-gray-400 dark:text-gray-500"
-                    }`}
-                    title={post.published ? "Unpublish" : "Publish"}
-                  >
-                    {post.published ? <Eye size={20} /> : <EyeOff size={20} />}
-                  </button>
-                  <Link
-                    to={`/posts/edit/${post.id}`}
-                    className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full"
-                    title="Edit"
-                  >
-                    <Edit size={20} />
-                  </Link>
-                  <button
-                    onClick={() => handleDelete(post.id)}
-                    className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
-                    title="Delete"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                </div>
-              )}
-            </div>
+              <div className="p-3 sm:p-4 lg:p-6 flex-1 flex flex-col">
+                <h3 className="text-sm sm:text-base lg:text-xl font-bold text-slate-900 dark:text-white mb-2 sm:mb-3 line-clamp-2 leading-tight group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                  {post.title}
+                </h3>
 
-            {/* Comment Section */}
-            {expandedPostId === post.id && (
-              <CommentSection
-                postId={post.id}
-                currentUser={currentUser}
-                onCommentChange={(delta) => handleCommentChange(post.id, delta)}
-              />
-            )}
-          </div>
-        ))
+                {/* Content preview - hidden on mobile, line-clamp on desktop */}
+                <div
+                  className="content-preview text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-3 sm:mb-4 flex-1 prose prose-sm dark:prose-invert max-w-none"
+                  dangerouslySetInnerHTML={{ __html: post.content }}
+                />
+
+                <div className="flex items-center justify-between pt-2 sm:pt-4 border-t border-slate-100 dark:border-slate-700/50 sm:mt-auto">
+                  {/* Author - Left Side */}
+                  {!myPosts && (
+                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+                      {post.author?.avatar ? (
+                        <img
+                          src={post.author.avatar}
+                          alt={post.author.name}
+                          className="w-4 h-4 sm:w-7 sm:h-7 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700 shrink-0"
+                        />
+                      ) : (
+                        <div className="w-4 h-4 sm:w-7 sm:h-7 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0">
+                          <UserIcon
+                            size={10}
+                            className="sm:w-3.5 sm:h-3.5 text-slate-400 dark:text-slate-500"
+                          />
+                        </div>
+                      )}
+                      <span className="text-[10px] sm:text-xs font-medium text-slate-900 dark:text-white truncate min-w-0 max-w-[120px] sm:max-w-[200px]">
+                        {post.author?.name || "Anonymous"}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Action Buttons - Right Side */}
+                  <div className="flex items-center justify-end gap-2 sm:gap-3 lg:gap-4 shrink-0 ml-auto">
+                    {myPosts ? (
+                      <div className="flex items-center gap-4 sm:gap-5 lg:gap-6">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleTogglePublish(post);
+                          }}
+                          className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
+                          title={post.published ? "Unpublish" : "Publish"}
+                        >
+                          {post.published ? (
+                            <Eye size={14} className="sm:w-4 sm:h-4" />
+                          ) : (
+                            <EyeOff size={14} className="sm:w-4 sm:h-4" />
+                          )}
+                        </button>
+                        <Link
+                          to={`/posts/edit/${post.id}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                          className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
+                        >
+                          <Edit size={14} className="sm:w-4 sm:h-4" />
+                        </Link>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleDelete(post.id);
+                          }}
+                          className="text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                        >
+                          <Trash2 size={14} className="sm:w-4 sm:h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 text-[10px] sm:text-xs text-slate-500 dark:text-slate-400">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleToggleLike(post);
+                          }}
+                          className={`flex items-center gap-1 transition-colors ${
+                            post.isLiked ? "text-red-500" : "hover:text-red-500"
+                          }`}
+                        >
+                          <Heart
+                            size={12}
+                            className={`${
+                              post.isLiked ? "fill-current" : ""
+                            } sm:w-4 sm:h-4 lg:w-5 lg:h-5`}
+                          />
+                          {post._count?.likes || 0}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))
+        )}
+      </div>
+
+      {/* Loading indicator and observer target */}
+      {!searchKeyword.trim() && (
+        <div ref={observerTarget} className="mt-8 flex justify-center">
+          {loadingMore && (
+            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+              <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-700 border-t-black dark:border-t-slate-400 rounded-full animate-spin"></div>
+              <span className="text-sm">Loading more...</span>
+            </div>
+          )}
+          {!hasMore && posts.length > 0 && (
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              No more posts to load
+            </p>
+          )}
+        </div>
       )}
-    </div>
+    </>
   );
 }

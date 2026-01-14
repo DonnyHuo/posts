@@ -3,9 +3,123 @@
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Open Sans", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-sans: "Open Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Merriweather", "Georgia", serif;
 }
+
+/* Load Fonts via Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 
 body {
   font-family: var(--font-sans);
+  @apply bg-slate-50 text-slate-900 dark:bg-black dark:text-slate-100 antialiased selection:bg-black dark:selection:bg-slate-800 selection:text-white transition-colors duration-300;
+}
+
+/* Hide Scrollbar but keep scrolling */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Rich Text Editor Styles */
+.ProseMirror {
+  outline: none;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #94a3b8;
+  pointer-events: none;
+  height: 0;
+}
+
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1rem auto;
+  display: block;
+  object-fit: contain;
+}
+
+/* Ensure images respect their inline styles for size control */
+.ProseMirror img[style*="max-width"] {
+  display: block;
+}
+
+.ProseMirror a {
+  color: #000;
+  text-decoration: underline;
+}
+
+.dark .ProseMirror a {
+  color: #e2e8f0;
+}
+
+.ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.ProseMirror li {
+  margin: 0.25rem 0;
+}
+
+/* Post card content preview - hidden on mobile, line-clamp on desktop */
+.content-preview {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .content-preview {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+/* Hide images in post list preview */
+.prose img {
+  display: none !important;
+}
+
+/* Ensure links are clickable in preview */
+.prose a {
+  pointer-events: auto;
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* Compact list styles for preview */
+.prose ul,
+.prose ol {
+  margin: 0.25rem 0;
+  padding-left: 1rem;
+}
+
+.prose p {
+  margin: 0.25rem 0;
+}
+
+.prose p:first-child {
+  margin-top: 0;
+}
+
+.prose p:last-child {
+  margin-bottom: 0;
+}
+
+/* Ensure strong and em tags work */
+.prose strong {
+  font-weight: 600;
+}
+
+.prose em {
+  font-style: italic;
 }
