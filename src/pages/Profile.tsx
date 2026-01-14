@@ -285,32 +285,29 @@ export default function Profile() {
     <div>
       {/* Profile Header */}
       <div className="-mx-3 -mt-6 sm:mt-0 sm:mx-0 bg-white dark:bg-[#161616] sm:rounded-2xl border-b sm:border border-slate-200 dark:border-slate-800 overflow-hidden mb-8">
-        {/* Banner */}
-        <div className="dark:from-zinc-900 dark:to-black">
-          {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-1.5 p-6">
-            <button
-              onClick={openEditModal}
-              className="p-2 rounded-lg bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white transition-all"
-              title="Edit Profile"
-            >
-              <Edit3 size={16} />
-            </button>
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              className="p-2 rounded-lg bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white transition-all"
-              title="Settings"
-            >
-              <Settings size={16} />
-            </button>
-            <button
-              onClick={handleLogout}
-              className="p-2 rounded-lg bg-white/15 hover:bg-red-500/80 backdrop-blur-sm text-white transition-all"
-              title="Sign Out"
-            >
-              <LogOut size={16} />
-            </button>
-          </div>
+        {/* Action Buttons */}
+        <div className="flex items-center justify-end gap-1.5 p-4 sm:p-6">
+          <button
+            onClick={openEditModal}
+            className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/15 dark:hover:bg-white/25 text-slate-600 dark:text-white transition-all"
+            title="Edit Profile"
+          >
+            <Edit3 size={16} />
+          </button>
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/15 dark:hover:bg-white/25 text-slate-600 dark:text-white transition-all"
+            title="Settings"
+          >
+            <Settings size={16} />
+          </button>
+          <button
+            onClick={handleLogout}
+            className="p-2 rounded-lg bg-slate-100 hover:bg-red-100 dark:bg-white/15 dark:hover:bg-red-500/80 text-slate-600 hover:text-red-600 dark:text-white transition-all"
+            title="Sign Out"
+          >
+            <LogOut size={16} />
+          </button>
         </div>
         {/* Content */}
         <div className="px-4 sm:px-6 pb-5 sm:pb-6 -mt-6">
