@@ -4,7 +4,38 @@ export interface User {
   name: string;
   role: "USER" | "ADMIN";
   avatar?: string;
+  bio?: string;
   createdAt: string;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  name: string;
+  avatar?: string;
+  bio?: string;
+  createdAt: string;
+  isFollowing?: boolean;
+  postsCount: number;
+  followersCount: number;
+  followingCount: number;
+}
+
+export interface UserStats {
+  likesReceived: number;
+  favoritesReceived: number;
+  postsCount: number;
+  followersCount: number;
+  followingCount: number;
+  commentsReceived: number;
+}
+
+export interface FollowUser {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  bio?: string;
 }
 
 export interface Comment {

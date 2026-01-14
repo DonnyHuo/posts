@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
-import type { User, Post } from "../types";
+import type { User, Post, UserStats, FollowUser } from "../types";
 import {
   User as UserIcon,
   Mail,
@@ -18,6 +18,9 @@ import {
   Globe,
   MessageCircle,
   Loader2,
+  Users,
+  UserPlus,
+  TrendingUp,
 } from "lucide-react";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { AnimatePresence, motion } from "framer-motion";
@@ -30,13 +33,16 @@ const CLOUDINARY_CONFIG = {
     import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "unsigned_preset",
 };
 
-type TabType = "likes" | "favorites" | "comments";
+type TabType = "likes" | "favorites" | "comments" | "followers" | "following" | "stats";
 
 export default function Profile() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [editForm, setEditForm] = useState({ name: "", avatar: "" });
+  const [editForm, setEditForm] = useState({ name: "", avatar: "", bio: "" });
+  const [stats, setStats] = useState<UserStats | null>(null);
+  const [followers, setFollowers] = useState<FollowUser[]>([]);
+  const [following, setFollowing] = useState<FollowUser[]>([]);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -87,7 +93,20 @@ export default function Profile() {
         setEditForm({
           name: res.data.name || "",
           avatar: res.data.avatar || "",
+          bio: res.data.bio || "",
         });
+
+        // Fetch stats
+        const statsRes = await api.get("/users/stats");
+        setStats(statsRes.data);
+
+        // Fetch followers and following
+        const [followersRes, followingRes] = await Promise.all([
+          api.get("/follows/my/followers"),
+          api.get("/follows/my/following"),
+        ]);
+        setFollowers(followersRes.data.data || []);
+        setFollowing(followingRes.data.data || []);
       } catch (err) {
         console.error("Failed to fetch profile", err);
         localStorage.removeItem("token");
@@ -252,6 +271,7 @@ export default function Profile() {
     setEditForm({
       name: user?.name || "",
       avatar: user?.avatar || "",
+      bio: user?.bio || "",
     });
     setMessage(null);
     setIsEditing(true);
@@ -341,6 +361,31 @@ export default function Profile() {
                     : "Unknown"}
                 </span>
               </div>
+              {user?.bio && (
+                <p className="mt-3 text-sm text-slate-600 dark:text-slate-400 max-w-md">
+                  {user.bio}
+                </p>
+              )}
+              {/* Stats Row */}
+              {stats && (
+                <div className="flex items-center gap-6 mt-4 text-sm">
+                  <div className="flex items-center gap-1.5">
+                    <Users size={16} className="text-slate-400" />
+                    <span className="font-semibold text-slate-900 dark:text-white">{stats.followersCount}</span>
+                    <span className="text-slate-500">followers</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <UserPlus size={16} className="text-slate-400" />
+                    <span className="font-semibold text-slate-900 dark:text-white">{stats.followingCount}</span>
+                    <span className="text-slate-500">following</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Heart size={16} className="text-red-400" />
+                    <span className="font-semibold text-slate-900 dark:text-white">{stats.likesReceived}</span>
+                    <span className="text-slate-500">likes</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -404,6 +449,23 @@ export default function Profile() {
                     className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-black dark:ring-slate-800 focus:border-transparent outline-none transition-all"
                     placeholder="Your display name"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Bio / Personal Signature
+                  </label>
+                  <textarea
+                    value={editForm.bio}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, bio: e.target.value })
+                    }
+                    rows={3}
+                    maxLength={200}
+                    className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-black dark:ring-slate-800 focus:border-transparent outline-none transition-all resize-none"
+                    placeholder="Write something about yourself..."
+                  />
+                  <p className="text-xs text-slate-400 mt-1">{editForm.bio.length}/200</p>
                 </div>
 
                 <div>

@@ -8,6 +8,7 @@ import {
 import PostEditor from "./pages/PostEditor";
 import PostDetail from "./pages/PostDetail";
 import Profile from "./pages/Profile";
+import UserProfile from "./pages/UserProfile";
 import Layout from "./components/Layout";
 import PostFeed from "./pages/PostFeed";
 import SearchResults from "./pages/SearchResults";
@@ -79,6 +80,9 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* User Profile 页面 - 公开（查看他人主页） */}
+          <Route path="user/:userId" element={<UserProfile />} />
 
           {/* Post 详情页 - 公开 */}
           <Route path="posts/:id" element={<PostDetail />} />

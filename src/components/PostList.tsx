@@ -332,7 +332,15 @@ export default function PostList({
                 <div className="flex items-center justify-between pt-2 sm:pt-4 border-t border-slate-100 dark:border-slate-700/50 sm:mt-auto">
                   {/* Author - Left Side */}
                   {!myPosts && (
-                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+                    <div
+                      className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (post.author?.id) {
+                          navigate(`/user/${post.author.id}`);
+                        }
+                      }}
+                    >
                       {post.author?.avatar ? (
                         <img
                           src={post.author.avatar}

@@ -249,7 +249,10 @@ export default function PostDetail() {
         <div className="px-4 sm:px-8 py-4 sm:py-6 border-b border-slate-100 dark:border-slate-700/50">
           <div className="flex flex-wrap items-center justify-between gap-4">
             {/* Author Info */}
-            <div className="flex items-center gap-3">
+            <div
+              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => post.author?.id && navigate(`/user/${post.author.id}`)}
+            >
               {post.author?.avatar ? (
                 <img
                   src={post.author.avatar}
@@ -265,7 +268,7 @@ export default function PostDetail() {
                 </div>
               )}
               <div>
-                <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white hover:text-green-600 dark:hover:text-green-400 transition-colors">
                   {post.author?.name || "Anonymous"}
                 </p>
                 <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
