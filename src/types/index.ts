@@ -19,6 +19,8 @@ export interface UserProfile {
   postsCount: number;
   followersCount: number;
   followingCount: number;
+  likesReceived?: number;
+  favoritesReceived?: number;
 }
 
 export interface UserStats {

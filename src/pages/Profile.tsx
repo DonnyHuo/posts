@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
-import type { User, Post, UserStats, FollowUser } from "../types";
+import type { User, Post, UserStats } from "../types";
 import {
   User as UserIcon,
   Mail,
@@ -18,9 +18,6 @@ import {
   Globe,
   MessageCircle,
   Loader2,
-  Users,
-  UserPlus,
-  TrendingUp,
 } from "lucide-react";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { AnimatePresence, motion } from "framer-motion";
@@ -33,7 +30,13 @@ const CLOUDINARY_CONFIG = {
     import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "unsigned_preset",
 };
 
-type TabType = "likes" | "favorites" | "comments" | "followers" | "following" | "stats";
+type TabType =
+  | "likes"
+  | "favorites"
+  | "comments"
+  | "followers"
+  | "following"
+  | "stats";
 
 export default function Profile() {
   const [user, setUser] = useState<User | null>(null);
@@ -41,8 +44,6 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [editForm, setEditForm] = useState({ name: "", avatar: "", bio: "" });
   const [stats, setStats] = useState<UserStats | null>(null);
-  const [followers, setFollowers] = useState<FollowUser[]>([]);
-  const [following, setFollowing] = useState<FollowUser[]>([]);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -99,14 +100,6 @@ export default function Profile() {
         // Fetch stats
         const statsRes = await api.get("/users/stats");
         setStats(statsRes.data);
-
-        // Fetch followers and following
-        const [followersRes, followingRes] = await Promise.all([
-          api.get("/follows/my/followers"),
-          api.get("/follows/my/following"),
-        ]);
-        setFollowers(followersRes.data.data || []);
-        setFollowing(followingRes.data.data || []);
       } catch (err) {
         console.error("Failed to fetch profile", err);
         localStorage.removeItem("token");
@@ -292,102 +285,136 @@ export default function Profile() {
     <div>
       {/* Profile Header */}
       <div className="-mx-3 -mt-6 sm:mt-0 sm:mx-0 bg-white dark:bg-[#161616] sm:rounded-2xl border-b sm:border border-slate-200 dark:border-slate-800 overflow-hidden mb-8">
-        <div className="h-32 sm:h-36 relative overflow-hidden bg-gradient-to-b from-zinc-900 via-zinc-800 to-zinc-700 dark:from-black dark:via-zinc-900 dark:to-zinc-800">
-          {/* Noise texture overlay */}
-          <div className="absolute inset-0 opacity-[0.15] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNhKSIvPjwvc3ZnPg==')]"></div>
-          {/* Subtle glow */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-32 bg-gradient-to-b from-white/[0.08] to-transparent"></div>
-          {/* Bottom fade */}
-          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white/[0.03] to-transparent"></div>
+        {/* Banner */}
+        <div className="dark:from-zinc-900 dark:to-black">
           {/* Action Buttons */}
-          <div className="absolute top-4 right-4 flex items-center gap-2">
+          <div className="flex items-center justify-end gap-1.5 p-6">
             <button
               onClick={openEditModal}
-              className="p-2.5 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white transition-all"
+              className="p-2 rounded-lg bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white transition-all"
               title="Edit Profile"
             >
-              <Edit3 size={18} />
+              <Edit3 size={16} />
             </button>
             <button
               onClick={() => setIsSettingsOpen(true)}
-              className="p-2.5 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white transition-all"
+              className="p-2 rounded-lg bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white transition-all"
               title="Settings"
             >
-              <Settings size={18} />
+              <Settings size={16} />
             </button>
             <button
               onClick={handleLogout}
-              className="p-2.5 rounded-xl bg-white/20 hover:bg-red-500/80 backdrop-blur-sm text-white transition-all"
+              className="p-2 rounded-lg bg-white/15 hover:bg-red-500/80 backdrop-blur-sm text-white transition-all"
               title="Sign Out"
             >
-              <LogOut size={18} />
+              <LogOut size={16} />
             </button>
           </div>
         </div>
-        <div className="px-6 sm:px-8 pb-6 sm:pb-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6 -mt-16">
-            <div className="relative">
+        {/* Content */}
+        <div className="px-4 sm:px-6 pb-5 sm:pb-6 -mt-6">
+          {/* Avatar + Info Row */}
+          <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
+            {/* Avatar */}
+            <div className="shrink-0">
               {user?.avatar ? (
                 <img
                   src={user.avatar}
                   alt="Avatar"
-                  className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl object-cover border-4 border-white dark:border-[#111111] shadow-lg"
+                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl object-cover border-3 border-white dark:border-[#161616] shadow-lg"
                 />
               ) : (
-                <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl bg-slate-200 dark:bg-slate-700 border-4 border-white dark:border-[#111111] shadow-lg flex items-center justify-center">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-slate-200 dark:bg-slate-700 border-3 border-white dark:border-[#161616] shadow-lg flex items-center justify-center">
                   <UserIcon
-                    size={40}
+                    size={32}
                     className="text-slate-400 dark:text-slate-500"
                   />
                 </div>
               )}
             </div>
-            <div className="flex-1 pt-2 sm:pt-0">
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
+            {/* Name + Stats */}
+            <div className="flex-1 min-w-0 sm:pb-1">
+              <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white truncate">
                 {user?.name || "User"}
               </h1>
-              <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                <span className="flex items-center gap-1">
-                  <Mail size={14} />
-                  <span className="truncate max-w-[180px] sm:max-w-none">
-                    {user?.email}
-                  </span>
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar size={14} />
-                  Joined{" "}
-                  {user?.createdAt
-                    ? new Date(user.createdAt).toLocaleDateString()
-                    : "Unknown"}
-                </span>
-              </div>
-              {user?.bio && (
-                <p className="mt-3 text-sm text-slate-600 dark:text-slate-400 max-w-md">
-                  {user.bio}
-                </p>
-              )}
-              {/* Stats Row */}
+              {/* Stats - PC inline */}
               {stats && (
-                <div className="flex items-center gap-6 mt-4 text-sm">
-                  <div className="flex items-center gap-1.5">
-                    <Users size={16} className="text-slate-400" />
-                    <span className="font-semibold text-slate-900 dark:text-white">{stats.followersCount}</span>
-                    <span className="text-slate-500">followers</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <UserPlus size={16} className="text-slate-400" />
-                    <span className="font-semibold text-slate-900 dark:text-white">{stats.followingCount}</span>
-                    <span className="text-slate-500">following</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Heart size={16} className="text-red-400" />
-                    <span className="font-semibold text-slate-900 dark:text-white">{stats.likesReceived}</span>
-                    <span className="text-slate-500">likes</span>
-                  </div>
+                <div className="hidden sm:flex items-center gap-4 mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  <span>
+                    <strong className="text-slate-900 dark:text-white">
+                      {stats.followersCount}
+                    </strong>{" "}
+                    followers
+                  </span>
+                  <span>
+                    <strong className="text-slate-900 dark:text-white">
+                      {stats.followingCount}
+                    </strong>{" "}
+                    following
+                  </span>
                 </div>
               )}
             </div>
           </div>
+
+          {/* Bio */}
+          {user?.bio && (
+            <p className="mt-3 text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
+              {user.bio}
+            </p>
+          )}
+
+          {/* Email + Joined Date */}
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+            <span className="flex items-center gap-1.5">
+              <Mail size={14} className="shrink-0" />
+              <span className="truncate">{user?.email}</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Calendar size={14} className="shrink-0" />
+              <span>
+                Joined{" "}
+                {user?.createdAt
+                  ? new Date(user.createdAt).toLocaleDateString()
+                  : "Unknown"}
+              </span>
+            </span>
+          </div>
+
+          {/* Stats Row */}
+          {stats && (
+            <div className="flex flex-wrap items-center gap-3 sm:gap-5 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs sm:text-sm">
+              {/* Mobile only: followers/following */}
+              <span className="sm:hidden text-slate-600 dark:text-slate-400">
+                <strong className="text-slate-900 dark:text-white">
+                  {stats.followersCount}
+                </strong>{" "}
+                followers
+              </span>
+              <span className="sm:hidden text-slate-600 dark:text-slate-400">
+                <strong className="text-slate-900 dark:text-white">
+                  {stats.followingCount}
+                </strong>{" "}
+                following
+              </span>
+              {/* likes/favorites received */}
+              <div className="flex items-center gap-1 sm:gap-1.5 text-slate-600 dark:text-slate-400">
+                <Heart size={14} className="text-red-500" />
+                <strong className="text-slate-900 dark:text-white">
+                  {stats.likesReceived}
+                </strong>
+                <span className="hidden sm:inline">likes received</span>
+              </div>
+              <div className="flex items-center gap-1 sm:gap-1.5 text-slate-600 dark:text-slate-400">
+                <Bookmark size={14} className="text-amber-500" />
+                <strong className="text-slate-900 dark:text-white">
+                  {stats.favoritesReceived}
+                </strong>
+                <span className="hidden sm:inline">saves received</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -465,7 +492,9 @@ export default function Profile() {
                     className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-black dark:ring-slate-800 focus:border-transparent outline-none transition-all resize-none"
                     placeholder="Write something about yourself..."
                   />
-                  <p className="text-xs text-slate-400 mt-1">{editForm.bio.length}/200</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    {editForm.bio.length}/200
+                  </p>
                 </div>
 
                 <div>
