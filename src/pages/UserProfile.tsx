@@ -6,6 +6,7 @@ import type {
   Post,
   FollowUser,
   User,
+  UserStats,
 } from "../types";
 import {
   User as UserIcon,
@@ -33,6 +34,7 @@ export default function UserProfile() {
   const navigate = useNavigate();
   const { currentUser } = useOutletContext<LayoutContext>();
   const [profile, setProfile] = useState<UserProfileType | null>(null);
+  const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [following, setFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
@@ -60,6 +62,10 @@ export default function UserProfile() {
         const res = await api.get(`/users/${userId}/public`);
         setProfile(res.data);
         setFollowing(res.data.isFollowing || false);
+
+        // Fetch user stats
+        const statsRes = await api.get(`/users/${userId}/stats`);
+        setStats(statsRes.data);
       } catch (err) {
         console.error("Failed to fetch user profile", err);
       } finally {
@@ -269,20 +275,28 @@ export default function UserProfile() {
                   </span>
                   <span className="text-slate-500">following</span>
                 </button>
-                <div className="flex items-center gap-1 sm:gap-1.5">
-                  <Heart size={14} className="text-red-400" />
-                  <span className="font-semibold text-slate-900 dark:text-white">
-                    {profile.likesReceived ?? 0}
-                  </span>
-                  <span className="text-slate-500 hidden sm:inline">likes</span>
-                </div>
-                <div className="flex items-center gap-1 sm:gap-1.5">
-                  <Bookmark size={14} className="text-amber-400" />
-                  <span className="font-semibold text-slate-900 dark:text-white">
-                    {profile.favoritesReceived ?? 0}
-                  </span>
-                  <span className="text-slate-500 hidden sm:inline">saves</span>
-                </div>
+                {stats && (
+                  <>
+                    <div className="flex items-center gap-1 sm:gap-1.5">
+                      <Heart size={14} className="text-red-400" />
+                      <span className="font-semibold text-slate-900 dark:text-white">
+                        {stats.likesReceived}
+                      </span>
+                      <span className="text-slate-500 hidden sm:inline">
+                        likes
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 sm:gap-1.5">
+                      <Bookmark size={14} className="text-amber-400" />
+                      <span className="font-semibold text-slate-900 dark:text-white">
+                        {stats.favoritesReceived}
+                      </span>
+                      <span className="text-slate-500 hidden sm:inline">
+                        saves
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
