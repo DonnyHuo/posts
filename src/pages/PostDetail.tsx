@@ -64,24 +64,112 @@ export default function PostDetail() {
     fetchPost();
   }, [id]);
 
+  // Set meta tags for sharing (Open Graph and Twitter Card)
+  useEffect(() => {
+    if (!post) return;
+
+    const currentUrl = window.location.href;
+    const coverImage = post.coverUrls && post.coverUrls.length > 0 ? post.coverUrls[0] : null;
+    const description = post.content?.replace(/<[^>]*>/g, '').substring(0, 200) || post.title;
+
+    // Helper function to set or update meta tag
+    const setMetaTag = (property: string, content: string) => {
+      let element = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement;
+      if (!element) {
+        element = document.createElement('meta');
+        element.setAttribute('property', property);
+        document.head.appendChild(element);
+      }
+      element.setAttribute('content', content);
+    };
+
+    const setMetaName = (name: string, content: string) => {
+      let element = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement;
+      if (!element) {
+        element = document.createElement('meta');
+        element.setAttribute('name', name);
+        document.head.appendChild(element);
+      }
+      element.setAttribute('content', content);
+    };
+
+    // Open Graph tags
+    setMetaTag('og:title', post.title);
+    setMetaTag('og:description', description);
+    setMetaTag('og:url', currentUrl);
+    setMetaTag('og:type', 'article');
+    if (coverImage) {
+      setMetaTag('og:image', coverImage);
+      setMetaTag('og:image:width', '1200');
+      setMetaTag('og:image:height', '630');
+    }
+
+    // Twitter Card tags
+    setMetaName('twitter:card', 'summary_large_image');
+    setMetaName('twitter:title', post.title);
+    setMetaName('twitter:description', description);
+    if (coverImage) {
+      setMetaName('twitter:image', coverImage);
+    }
+
+    // Update page title
+    document.title = `${post.title} | Posts`;
+
+    // Cleanup function to remove meta tags when component unmounts
+    return () => {
+      // Reset title
+      document.title = 'Posts';
+      // Remove meta tags (optional - you can keep them or remove them)
+      const metaTagsToRemove = [
+        'og:title', 'og:description', 'og:url', 'og:type', 'og:image', 'og:image:width', 'og:image:height',
+        'twitter:card', 'twitter:title', 'twitter:description', 'twitter:image'
+      ];
+      metaTagsToRemove.forEach(property => {
+        const element = document.querySelector(`meta[property="${property}"], meta[name="${property}"]`);
+        if (element) {
+          element.remove();
+        }
+      });
+    };
+  }, [post]);
+
   const handleCommentChange = (delta: number) => {
     setCommentCount((prev) => prev + delta);
   };
 
   const handleShare = async () => {
+    if (!post) return;
+
+    const shareUrl = window.location.href;
+    const shareText = post.content?.replace(/<[^>]*>/g, '').substring(0, 200) || post.title;
+
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: post?.title,
-          text: post?.content?.substring(0, 100) + "...",
-          url: window.location.href,
-        });
+        const shareData: ShareData = {
+          title: post.title,
+          text: shareText,
+          url: shareUrl,
+        };
+
+        // If browser supports sharing files and post has cover image, include it
+        if (post.coverUrls && post.coverUrls.length > 0 && 'canShare' in navigator) {
+          // Note: File sharing requires user interaction and file objects
+          // For now, we'll just share the URL with meta tags handling the image
+        }
+
+        await navigator.share(shareData);
       } catch (err) {
-        // User cancelled or share failed
+        // User cancelled or share failed - fallback to copy
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          alert(_("postDetail.linkCopied"));
+        } catch (clipboardErr) {
+          console.error("Failed to copy to clipboard", clipboardErr);
+        }
       }
     } else {
       // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText(shareUrl);
       alert(_("postDetail.linkCopied"));
     }
   };
