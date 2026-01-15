@@ -75,7 +75,7 @@ export default function PostDetail() {
       post.content?.replace(/<[^>]*>/g, "").substring(0, 200) || post.title;
 
     // Convert relative image URL to absolute URL if needed
-    // WeChat requires HTTPS URLs
+    // WeChat requires HTTPS URLs and specific image requirements
     const getAbsoluteImageUrl = (url: string | null): string | null => {
       if (!url) return null;
 
@@ -143,7 +143,7 @@ export default function PostDetail() {
     if (coverImage) {
       // coverImage is already HTTPS from getAbsoluteImageUrl
       setMetaTag("og:image", coverImage);
-      setMetaTag("og:image:secure_url", coverImage);
+      setMetaTag("og:image:secure_url", coverImage); // Required by WeChat
       setMetaTag("og:image:width", "1200");
       setMetaTag("og:image:height", "630");
       setMetaTag("og:image:type", "image/jpeg");
@@ -216,6 +216,7 @@ export default function PostDetail() {
     const coverImageUrl =
       post.coverUrls && post.coverUrls.length > 0 ? post.coverUrls[0] : null;
 
+    console.log("coverImageUrl", coverImageUrl);
     // Convert relative image URL to absolute URL if needed
     const getAbsoluteImageUrl = (url: string | null): string | null => {
       if (!url) return null;
