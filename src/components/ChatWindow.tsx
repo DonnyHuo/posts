@@ -79,8 +79,8 @@ export default function ChatWindow({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Initialize AudioContext on mount (required for mobile browsers)
-  useEffect(() => {
+  // Initialize audio on first user interaction (required for mobile browsers)
+  const handleUserInteraction = useCallback(() => {
     initializeAudioContext();
   }, []);
 
@@ -441,7 +441,11 @@ export default function ChatWindow({
   }
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-black">
+    <div
+      className="flex flex-col h-full bg-white dark:bg-black"
+      onTouchStart={handleUserInteraction}
+      onClick={handleUserInteraction}
+    >
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-700">
         {onBack && (
@@ -740,6 +744,8 @@ export default function ChatWindow({
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
+            onFocus={handleUserInteraction}
+            onTouchStart={handleUserInteraction}
             placeholder="输入消息..."
             className="flex-1 px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-0 focus:border-gray-300 dark:focus:border-gray-600 outline-none"
           />

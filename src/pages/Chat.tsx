@@ -7,7 +7,7 @@ import ChatWindow from "../components/ChatWindow";
 import NewChatModal from "../components/NewChatModal";
 import { MessageSquare } from "lucide-react";
 import { useUserNotifications } from "../hooks/usePusher";
-import { playNotificationSound } from "../utils/sound";
+import { playNotificationSound, initializeAudioContext } from "../utils/sound";
 
 export default function Chat() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -133,6 +133,11 @@ export default function Chat() {
     }
   };
 
+  // Handle user interaction to unlock audio on mobile
+  const handleUserInteraction = useCallback(() => {
+    initializeAudioContext();
+  }, []);
+
   // Mobile view: show only one panel at a time
   if (isMobile) {
     console.log(
@@ -146,7 +151,11 @@ export default function Chat() {
     // When in conversation list: Layout has padding, so we need negative margins
     if (selectedConversation) {
       return (
-        <div className="h-dvh bg-white dark:bg-black">
+        <div
+          className="h-dvh bg-white dark:bg-black"
+          onTouchStart={handleUserInteraction}
+          onClick={handleUserInteraction}
+        >
           <ChatWindow
             key={selectedConversation.id}
             conversation={selectedConversation}
@@ -167,7 +176,11 @@ export default function Chat() {
 
     // Conversation list view (with Layout padding)
     return (
-      <div className="-mx-3 -mt-6 -mb-14 h-[calc(100vh-56px)] bg-white dark:bg-black">
+      <div
+        className="-mx-3 -mt-6 -mb-14 h-[calc(100vh-56px)] bg-white dark:bg-black"
+        onTouchStart={handleUserInteraction}
+        onClick={handleUserInteraction}
+      >
         <ConversationList
           selectedId={conversationId || undefined}
           onSelect={handleSelectConversation}
@@ -187,7 +200,10 @@ export default function Chat() {
 
   // Desktop view: side-by-side panels
   return (
-    <div className="h-[calc(100vh-6rem)] flex bg-white dark:bg-black rounded-xl">
+    <div
+      className="h-[calc(100vh-6rem)] flex bg-white dark:bg-black rounded-xl"
+      onClick={handleUserInteraction}
+    >
       {/* Conversation list sidebar */}
       <div className="w-80 border-r border-gray-200 dark:border-gray-700 shrink-0">
         <ConversationList
