@@ -122,6 +122,9 @@ export const messages: Record<string, string> = {
   "userProfile.noFollowing": "还没有关注任何人",
   "userProfile.likes": "获赞",
   "userProfile.saves": "收藏",
+  "userProfile.message": "私信",
+  "userProfile.loginToMessage": "请登录后发送私信",
+  "userProfile.messageError": "发起会话失败",
 
   // Tabs
   "tabs.liked": "点赞",

@@ -123,6 +123,9 @@ export const messages: Record<string, string> = {
   "userProfile.noFollowing": "Not following anyone yet",
   "userProfile.likes": "likes",
   "userProfile.saves": "saves",
+  "userProfile.message": "Message",
+  "userProfile.loginToMessage": "Please login to send messages",
+  "userProfile.messageError": "Failed to start conversation",
 
   // Tabs
   "tabs.liked": "Liked",

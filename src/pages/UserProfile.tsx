@@ -19,6 +19,7 @@ import {
   UserMinus,
   FileText,
   Mail,
+  MessageCircle,
 } from "lucide-react";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { motion } from "framer-motion";
@@ -46,6 +47,7 @@ export default function UserProfile() {
   const [followers, setFollowers] = useState<FollowUser[]>([]);
   const [followingList, setFollowingList] = useState<FollowUser[]>([]);
   const [loadingTab, setLoadingTab] = useState(false);
+  const [messageLoading, setMessageLoading] = useState(false);
 
   // Navigate to user profile or own profile
   const handleUserClick = (targetUserId: string) => {
@@ -53,6 +55,30 @@ export default function UserProfile() {
       navigate("/profile");
     } else {
       navigate(`/user/${targetUserId}`);
+    }
+  };
+
+  // Start a private conversation with this user
+  const handleStartConversation = async () => {
+    if (!userId) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert(_("userProfile.loginToMessage"));
+      return;
+    }
+
+    setMessageLoading(true);
+    try {
+      const response = await api.post("/messages/conversations/private", {
+        userId,
+      });
+      navigate(`/chat?id=${response.data.id}`);
+    } catch (err) {
+      console.error("Failed to create conversation", err);
+      alert(_("userProfile.messageError"));
+    } finally {
+      setMessageLoading(false);
     }
   };
 
@@ -182,28 +208,39 @@ export default function UserProfile() {
                   />
                 </div>
               )}
-              {/* Follow Button - Mobile only in this position */}
-              <button
-                onClick={handleToggleFollow}
-                disabled={followLoading}
-                className={`sm:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  following
-                    ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-                    : "bg-black dark:bg-white text-white dark:text-black"
-                } ${followLoading ? "opacity-50" : ""}`}
-              >
-                {following ? (
-                  <>
-                    <UserMinus size={14} />
-                    {_("userProfile.following")}
-                  </>
-                ) : (
-                  <>
-                    <UserPlus size={14} />
-                    {_("userProfile.follow")}
-                  </>
-                )}
-              </button>
+              {/* Buttons - Mobile only in this position */}
+              <div className="sm:hidden flex items-center gap-2">
+                <button
+                  onClick={handleStartConversation}
+                  disabled={messageLoading}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all bg-indigo-600 text-white hover:bg-indigo-700 ${
+                    messageLoading ? "opacity-50" : ""
+                  }`}
+                >
+                  <MessageCircle size={14} />
+                </button>
+                <button
+                  onClick={handleToggleFollow}
+                  disabled={followLoading}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    following
+                      ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                      : "bg-black dark:bg-white text-white dark:text-black"
+                  } ${followLoading ? "opacity-50" : ""}`}
+                >
+                  {following ? (
+                    <>
+                      <UserMinus size={14} />
+                      {_("userProfile.following")}
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus size={14} />
+                      {_("userProfile.follow")}
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Info Section */}
@@ -227,28 +264,40 @@ export default function UserProfile() {
                     </span>
                   </div>
                 </div>
-                {/* Follow Button - PC only */}
-                <button
-                  onClick={handleToggleFollow}
-                  disabled={followLoading}
-                  className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
-                    following
-                      ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
-                      : "bg-black dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100"
-                  } ${followLoading ? "opacity-50" : ""}`}
-                >
-                  {following ? (
-                    <>
-                      <UserMinus size={18} />
-                      {_("userProfile.following")}
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus size={18} />
-                      {_("userProfile.follow")}
-                    </>
-                  )}
-                </button>
+                {/* Buttons - PC only */}
+                <div className="hidden sm:flex items-center gap-2">
+                  <button
+                    onClick={handleStartConversation}
+                    disabled={messageLoading}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all bg-indigo-600 text-white hover:bg-indigo-700 ${
+                      messageLoading ? "opacity-50" : ""
+                    }`}
+                  >
+                    <MessageCircle size={18} />
+                    {_("userProfile.message")}
+                  </button>
+                  <button
+                    onClick={handleToggleFollow}
+                    disabled={followLoading}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
+                      following
+                        ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                        : "bg-black dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100"
+                    } ${followLoading ? "opacity-50" : ""}`}
+                  >
+                    {following ? (
+                      <>
+                        <UserMinus size={18} />
+                        {_("userProfile.following")}
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus size={18} />
+                        {_("userProfile.follow")}
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
 
               {/* Bio */}
