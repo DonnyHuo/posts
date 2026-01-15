@@ -23,7 +23,7 @@ import { Grid } from "@giphy/react-components";
 import type { IGif } from "@giphy/js-types";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
-import { playNotificationSound } from "../utils/sound";
+import { playNotificationSound, initializeAudioContext } from "../utils/sound";
 
 // Cloudinary configuration
 const CLOUDINARY_CONFIG = {
@@ -77,6 +77,11 @@ export default function ChatWindow({
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Initialize AudioContext on mount (required for mobile browsers)
+  useEffect(() => {
+    initializeAudioContext();
   }, []);
 
   // Fetch messages
