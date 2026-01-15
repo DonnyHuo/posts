@@ -13,6 +13,7 @@ import {
   LayoutGrid,
   Annoyed,
   MessageCircle,
+  CirclePlus,
 } from "lucide-react";
 import type { User } from "../types";
 import { LoadingSpinner } from "./LoadingSpinner";
@@ -46,6 +47,7 @@ export default function Layout() {
     location.pathname === "/";
   const isProfileActive = location.pathname === "/profile";
   const isChatActive = location.pathname === "/chat";
+  const isMyPostsActive = location.pathname === "/dashboard/my";
 
   // Handle scroll to show/hide header on mobile
   useEffect(() => {
@@ -489,19 +491,19 @@ export default function Layout() {
             </motion.div>
           </Link>
 
-          {/* Chat Button - Center Left */}
-          {isLoggedIn && (
+          {/* Create Post Button - with circle */}
+          {isLoggedIn ? (
             <Link
-              to="/chat"
+              to="/dashboard/my"
               className={`flex items-center justify-center flex-1 transition-colors ${
-                isChatActive
-                  ? "text-indigo-600 dark:text-indigo-400"
-                  : "text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                isMyPostsActive
+                  ? "text-black dark:text-slate-200"
+                  : "text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-slate-200"
               }`}
             >
               <motion.div
                 animate={
-                  isChatActive
+                  isMyPostsActive
                     ? {
                         scale: [1, 1.1, 1],
                         y: [0, -2, 0],
@@ -513,41 +515,34 @@ export default function Layout() {
                 }
                 transition={{
                   duration: 2,
-                  repeat: isChatActive ? Infinity : 0,
+                  repeat: isMyPostsActive ? Infinity : 0,
                   repeatDelay: 1,
                   ease: "easeInOut",
                 }}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <MessageCircle
+                <CirclePlus
                   size={22}
-                  strokeWidth={isChatActive ? 2.5 : 1.5}
+                  strokeWidth={isMyPostsActive ? 2.5 : 1.5}
                 />
               </motion.div>
-            </Link>
-          )}
-
-          {/* Create Post Button - Center */}
-          {isLoggedIn ? (
-            <Link
-              to="/dashboard/my"
-              className="flex items-center justify-center w-12 h-12 rounded-full bg-black dark:bg-white dark:text-black hover:bg-slate-900 dark:hover:bg-slate-100 text-white transition-all -mt-3"
-              title="My Blog"
-            >
-              <Plus size={20} strokeWidth={2.5} />
             </Link>
           ) : (
             <button
               onClick={() => openAuthModal("login")}
-              className="flex items-center justify-center w-12 h-12 rounded-full bg-black dark:bg-white dark:text-black hover:bg-slate-900 dark:hover:bg-slate-100 text-white transition-all -mt-3"
-              title="Sign In to Create Post"
+              className="flex items-center justify-center flex-1 text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-slate-200 transition-colors"
             >
-              <Plus size={20} strokeWidth={2.5} />
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <CirclePlus size={22} strokeWidth={1.5} />
+              </motion.div>
             </button>
           )}
 
-          {/* Profile Button - Right */}
+          {/* Profile Button */}
           {isLoggedIn ? (
             <Link
               to="/profile"
@@ -593,6 +588,45 @@ export default function Layout() {
                 <Annoyed size={22} strokeWidth={1.5} />
               </motion.div>
             </button>
+          )}
+
+          {/* Chat Button - Last */}
+          {isLoggedIn && (
+            <Link
+              to="/chat"
+              className={`flex items-center justify-center flex-1 transition-colors ${
+                isChatActive
+                  ? "text-indigo-600 dark:text-indigo-400"
+                  : "text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+              }`}
+            >
+              <motion.div
+                animate={
+                  isChatActive
+                    ? {
+                        scale: [1, 1.1, 1],
+                        y: [0, -2, 0],
+                      }
+                    : {
+                        scale: 1,
+                        y: 0,
+                      }
+                }
+                transition={{
+                  duration: 2,
+                  repeat: isChatActive ? Infinity : 0,
+                  repeatDelay: 1,
+                  ease: "easeInOut",
+                }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <MessageCircle
+                  size={22}
+                  strokeWidth={isChatActive ? 2.5 : 1.5}
+                />
+              </motion.div>
+            </Link>
           )}
         </div>
       </nav>

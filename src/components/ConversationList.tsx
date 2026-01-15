@@ -9,34 +9,33 @@ interface ConversationListProps {
   selectedId?: string;
   onSelect: (conversation: Conversation) => void;
   onNewChat: () => void;
+  refreshTrigger?: number;
 }
 
 export default function ConversationList({
   selectedId,
   onSelect,
   onNewChat,
+  refreshTrigger = 0,
 }: ConversationListProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const fetchConversations = async () => {
-    try {
-      const response = await api.get("/messages/conversations");
-      setConversations(response.data);
-    } catch (error) {
-      console.error("Failed to fetch conversations:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchConversations = async () => {
+      try {
+        const response = await api.get("/messages/conversations");
+        setConversations(response.data);
+      } catch (error) {
+        console.error("Failed to fetch conversations:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchConversations();
-    // Poll for updates every 30 seconds
-    const interval = setInterval(fetchConversations, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  }, [selectedId, refreshTrigger]);
 
   const filteredConversations = conversations.filter((conv) => {
     if (!searchQuery) return true;

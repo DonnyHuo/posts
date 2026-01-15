@@ -12,18 +12,132 @@ import {
   Info,
   ArrowLeft,
   Smile,
+  X,
+  Loader2,
 } from "lucide-react";
+
+// Cloudinary configuration
+const CLOUDINARY_CONFIG = {
+  cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "difjqmokp",
+  uploadPreset:
+    import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "unsigned_preset",
+};
+
+// Common emojis
+const EMOJI_LIST = [
+  // Smileys
+  "😀",
+  "😃",
+  "😄",
+  "😁",
+  "😅",
+  "😂",
+  "🤣",
+  "😊",
+  "😇",
+  "🙂",
+  "😉",
+  "😌",
+  "😍",
+  "🥰",
+  "😘",
+  "😗",
+  "😋",
+  "😛",
+  "😜",
+  "🤪",
+  "😝",
+  "🤑",
+  "🤗",
+  "🤭",
+  "🤔",
+  "🤐",
+  "🤨",
+  "😐",
+  "😑",
+  "😶",
+  "😏",
+  "😒",
+  "🙄",
+  "😬",
+  "😮",
+  "😯",
+  "😲",
+  "😳",
+  "🥺",
+  "😢",
+  "😭",
+  "😤",
+  "😠",
+  "😡",
+  "🤬",
+  "😈",
+  "👿",
+  "💀",
+  // Gestures
+  "👍",
+  "👎",
+  "👌",
+  "✌️",
+  "🤞",
+  "🤟",
+  "🤘",
+  "🤙",
+  "👋",
+  "🤚",
+  "🖐️",
+  "✋",
+  "🖖",
+  "👏",
+  "🙌",
+  "🤝",
+  "🙏",
+  "💪",
+  "🦾",
+  "❤️",
+  "🧡",
+  "💛",
+  "💚",
+  "💙",
+  "💜",
+  "🖤",
+  "🤍",
+  "💯",
+  "💢",
+  "💥",
+  "💫",
+  "💦",
+  // Objects
+  "🎉",
+  "🎊",
+  "🎁",
+  "🎈",
+  "✨",
+  "🌟",
+  "⭐",
+  "🔥",
+  "💡",
+  "💰",
+  "🎵",
+  "🎶",
+  "📱",
+  "💻",
+  "🎮",
+  "🏆",
+];
 
 interface ChatWindowProps {
   conversation: Conversation;
   currentUserId: string;
   onBack?: () => void;
+  refreshTrigger?: number; // Increment to trigger refresh
 }
 
 export default function ChatWindow({
   conversation,
   currentUserId,
   onBack,
+  refreshTrigger,
 }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,9 +145,13 @@ export default function ChatWindow({
   const [newMessage, setNewMessage] = useState("");
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   // Fetch messages
   const fetchMessages = useCallback(
@@ -65,12 +183,60 @@ export default function ChatWindow({
 
   // Initial load
   useEffect(() => {
+    console.log(
+      "[ChatWindow] Initial load effect triggered, conversation.id:",
+      conversation.id
+    );
     setLoading(true);
     setMessages([]);
     setPage(1);
     setHasMore(true);
     fetchMessages(1);
     markAsRead();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversation.id]);
+
+  // Debug: Log when component mounts/unmounts
+  useEffect(() => {
+    console.log(
+      "[ChatWindow] Component mounted, conversation:",
+      conversation.id
+    );
+    return () => {
+      console.log("[ChatWindow] Component unmounted");
+    };
+  }, [conversation.id]);
+
+  // Polling fallback for when Pusher is not configured
+  useEffect(() => {
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await api.get(
+          `/messages/conversations/${conversation.id}/messages`,
+          { params: { page: 1, limit: 50 } }
+        );
+        const { data } = response.data;
+        
+        setMessages((prev) => {
+          // Only update if there are new messages
+          if (data.length > prev.length) {
+            // Find truly new messages (not in current state)
+            const newMessages = data.filter(
+              (msg: Message) => !prev.some((p) => p.id === msg.id)
+            );
+            if (newMessages.length > 0) {
+              console.log("[ChatWindow] Polling found new messages:", newMessages.length);
+              return data;
+            }
+          }
+          return prev;
+        });
+      } catch (error) {
+        // Silent fail for polling
+      }
+    }, 3000); // Poll every 3 seconds
+
+    return () => clearInterval(pollInterval);
   }, [conversation.id]);
 
   // Scroll to bottom on new message
@@ -81,22 +247,99 @@ export default function ChatWindow({
   }, [messages, loading]);
 
   // Real-time message updates via Pusher
-  useConversationChannel(conversation.id, (newMsg) => {
-    if (newMsg.senderId !== currentUserId) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          ...newMsg,
-          sender: {
-            id: newMsg.senderId,
-            name: newMsg.senderName,
-            avatar: newMsg.senderAvatar,
-          },
+  useConversationChannel(conversation.id, (data) => {
+    const newMsg = data as {
+      id: string;
+      content: string;
+      type?: "TEXT" | "IMAGE" | "SYSTEM";
+      senderId: string;
+      conversationId?: string;
+      createdAt?: string;
+      sender?: { id: string; name: string; avatar?: string };
+      senderName?: string;
+      senderAvatar?: string;
+    };
+
+    console.log(
+      "[ChatWindow] Pusher message received on conversation:",
+      conversation.id
+    );
+    console.log("[ChatWindow] Message data:", newMsg);
+    console.log(
+      "[ChatWindow] Current user:",
+      currentUserId,
+      "Sender:",
+      newMsg.senderId
+    );
+
+    setMessages((prev) => {
+      // Check if message already exists (by id or temp id)
+      const exists = prev.some(
+        (m) =>
+          m.id === newMsg.id ||
+          (m.id.startsWith("temp-") && m.content === newMsg.content)
+      );
+
+      if (exists) {
+        console.log("Message already exists, skipping");
+        return prev;
+      }
+
+      console.log("Adding new message to state");
+      const messageToAdd: Message = {
+        id: newMsg.id,
+        content: newMsg.content,
+        type: newMsg.type || "TEXT",
+        senderId: newMsg.senderId,
+        conversationId: newMsg.conversationId || conversation.id,
+        createdAt: newMsg.createdAt || new Date().toISOString(),
+        sender: newMsg.sender || {
+          id: newMsg.senderId,
+          name: newMsg.senderName || "Unknown",
+          avatar: newMsg.senderAvatar,
         },
-      ]);
+      };
+      return [...prev, messageToAdd];
+    });
+
+    // Mark as read if not own message
+    if (newMsg.senderId !== currentUserId) {
       markAsRead();
     }
   });
+
+  // Refresh messages when refreshTrigger changes (from parent)
+  useEffect(() => {
+    if (refreshTrigger === undefined || refreshTrigger === 0) return;
+
+    const refreshMessages = async () => {
+      try {
+        const response = await api.get(
+          `/messages/conversations/${conversation.id}/messages`,
+          { params: { page: 1, limit: 50 } }
+        );
+        const { data } = response.data;
+
+        setMessages((prev) => {
+          const existingIds = new Set(prev.map((m) => m.id));
+          const newMessages = data.filter(
+            (m: Message) => !existingIds.has(m.id) && !m.id.startsWith("temp-")
+          );
+
+          if (newMessages.length > 0) {
+            markAsRead();
+            return [...prev, ...newMessages];
+          }
+          return prev;
+        });
+      } catch {
+        // Silent fail
+      }
+    };
+
+    refreshMessages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTrigger]);
 
   // Mark as read
   const markAsRead = async () => {
@@ -155,6 +398,110 @@ export default function ChatWindow({
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    }
+  };
+
+  // Insert emoji
+  const handleEmojiSelect = (emoji: string) => {
+    setNewMessage((prev) => prev + emoji);
+    setShowEmojiPicker(false);
+    inputRef.current?.focus();
+  };
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(e.target as Node)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    if (showEmojiPicker) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showEmojiPicker]);
+
+  // Upload image to Cloudinary
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      alert("请选择图片文件");
+      return;
+    }
+
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      alert("图片大小不能超过 10MB");
+      return;
+    }
+
+    setUploadingImage(true);
+
+    try {
+      // Upload to Cloudinary
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", CLOUDINARY_CONFIG.uploadPreset);
+
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`,
+        { method: "POST", body: formData }
+      );
+
+      if (!response.ok) throw new Error("Upload failed");
+
+      const data = await response.json();
+      const imageUrl = data.secure_url;
+
+      // Send image message
+      await sendImageMessage(imageUrl);
+    } catch (error) {
+      console.error("Failed to upload image:", error);
+      alert("图片上传失败，请重试");
+    } finally {
+      setUploadingImage(false);
+      // Reset input
+      if (imageInputRef.current) {
+        imageInputRef.current.value = "";
+      }
+    }
+  };
+
+  // Send image message
+  const sendImageMessage = async (imageUrl: string) => {
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage: Message = {
+      id: tempId,
+      content: imageUrl,
+      type: "IMAGE",
+      senderId: currentUserId,
+      sender: { id: currentUserId, name: "You" },
+      conversationId: conversation.id,
+      createdAt: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, optimisticMessage]);
+
+    try {
+      const response = await api.post(
+        `/messages/conversations/${conversation.id}/messages`,
+        { content: imageUrl, type: "IMAGE" }
+      );
+
+      setMessages((prev) =>
+        prev.map((msg) => (msg.id === tempId ? response.data : msg))
+      );
+    } catch (error) {
+      console.error("Failed to send image:", error);
+      setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
+      alert("发送图片失败，请重试");
     }
   };
 
@@ -315,7 +662,8 @@ export default function ChatWindow({
                       <img
                         src={message.content}
                         alt="Image"
-                        className="max-w-full rounded-lg"
+                        className="max-w-full max-h-64 rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => window.open(message.content, "_blank")}
                       />
                     ) : (
                       <p className="whitespace-pre-wrap break-words">
@@ -341,13 +689,69 @@ export default function ChatWindow({
 
       {/* Input */}
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+        {/* Emoji Picker */}
+        {showEmojiPicker && (
+          <div
+            ref={emojiPickerRef}
+            className="absolute bottom-20 left-4 right-4 sm:left-auto sm:right-auto sm:w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-3 z-50"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                表情
+              </span>
+              <button
+                onClick={() => setShowEmojiPicker(false)}
+                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
+            <div className="grid grid-cols-8 gap-1 max-h-48 overflow-y-auto">
+              {EMOJI_LIST.map((emoji, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleEmojiSelect(emoji)}
+                  className="w-8 h-8 flex items-center justify-center text-xl hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center gap-2">
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500">
+          {/* Emoji Button */}
+          <button
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            className={`p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
+              showEmojiPicker
+                ? "text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30"
+                : "text-gray-500"
+            }`}
+          >
             <Smile className="w-5 h-5" />
           </button>
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500">
-            <ImageIcon className="w-5 h-5" />
+
+          {/* Image Upload Button */}
+          <button
+            onClick={() => imageInputRef.current?.click()}
+            disabled={uploadingImage}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 disabled:opacity-50 transition-colors"
+          >
+            {uploadingImage ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <ImageIcon className="w-5 h-5" />
+            )}
           </button>
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="hidden"
+          />
 
           <input
             ref={inputRef}
