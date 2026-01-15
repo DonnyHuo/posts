@@ -135,29 +135,39 @@ export default function Chat() {
       "currentUserId:",
       currentUserId
     );
-    return (
-      <div className="-mx-3 -mt-6 -mb-14 h-[calc(100vh-56px)] bg-white dark:bg-gray-900 relative">
-        {selectedConversation && (
-          <div className="absolute inset-0 z-20 bg-white dark:bg-gray-900">
-            <ChatWindow
-              key={selectedConversation.id}
-              conversation={selectedConversation}
-              currentUserId={currentUserId}
-              onBack={handleBack}
-              refreshTrigger={refreshTrigger}
-            />
-          </div>
-        )}
 
-        <div className={selectedConversation ? "hidden" : "block h-full"}>
-          <ConversationList
-            selectedId={conversationId || undefined}
-            onSelect={handleSelectConversation}
-            onNewChat={() => setShowNewChatModal(true)}
-            refreshTrigger={listRefreshTrigger}
+    // When in chat room: Layout removes padding, so we use full screen
+    // When in conversation list: Layout has padding, so we need negative margins
+    if (selectedConversation) {
+      return (
+        <div className="h-screen bg-white dark:bg-gray-900">
+          <ChatWindow
+            key={selectedConversation.id}
+            conversation={selectedConversation}
+            currentUserId={currentUserId}
+            onBack={handleBack}
+            refreshTrigger={refreshTrigger}
+          />
+          <NewChatModal
+            isOpen={showNewChatModal}
+            onClose={() => setShowNewChatModal(false)}
+            onCreatePrivate={handleCreatePrivate}
+            onCreateGroup={handleCreateGroup}
+            currentUserId={currentUserId}
           />
         </div>
+      );
+    }
 
+    // Conversation list view (with Layout padding)
+    return (
+      <div className="-mx-3 -mt-6 -mb-14 h-[calc(100vh-56px)] bg-white dark:bg-gray-900">
+        <ConversationList
+          selectedId={conversationId || undefined}
+          onSelect={handleSelectConversation}
+          onNewChat={() => setShowNewChatModal(true)}
+          refreshTrigger={listRefreshTrigger}
+        />
         <NewChatModal
           isOpen={showNewChatModal}
           onClose={() => setShowNewChatModal(false)}

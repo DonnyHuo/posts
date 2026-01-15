@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { api } from "../lib/api";
 import {
@@ -26,6 +26,7 @@ type AuthModal = "login" | "register" | null;
 
 export default function Layout() {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [authModal, setAuthModal] = useState<AuthModal>(null);
@@ -36,6 +37,9 @@ export default function Layout() {
   const [lastScrollY, setLastScrollY] = useState(0);
   const { _ } = useLingui();
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
+
+  // Check if user is in a chat room on mobile (should hide footer)
+  const isInChatRoom = location.pathname === "/chat" && searchParams.has("id");
 
   const loginForm = useForm();
   const registerForm = useForm();
@@ -471,197 +475,208 @@ export default function Layout() {
         </div>
       </header>
 
-      {/* Mobile Bottom Navigation */}
-      <nav
-        className={`sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 transition-transform duration-300 ease-in-out ${
-          isHeaderVisible ? "translate-y-0" : "translate-y-full"
-        }`}
-      >
-        <div className="max-w-[1600px] mx-auto h-14 flex items-center justify-around px-3">
-          {/* Home Button - Left */}
-          <Link
-            to="/dashboard/all"
-            className={`flex items-center justify-center flex-1 transition-colors ${
-              isHomeActive
-                ? "text-black dark:text-slate-200"
-                : "text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-slate-200"
-            }`}
-          >
-            <motion.div
-              animate={
+      {/* Mobile Bottom Navigation - Hidden when in chat room */}
+      {!isInChatRoom && (
+        <nav
+          className={`sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 transition-transform duration-300 ease-in-out ${
+            isHeaderVisible ? "translate-y-0" : "translate-y-full"
+          }`}
+        >
+          <div className="max-w-[1600px] mx-auto h-14 flex items-center justify-around px-3">
+            {/* Home Button - Left */}
+            <Link
+              to="/dashboard/all"
+              className={`flex items-center justify-center flex-1 transition-colors ${
                 isHomeActive
-                  ? {
-                      scale: [1, 1.1, 1],
-                      rotate: [0, 5, -5, 0],
-                    }
-                  : {
-                      rotate: 0,
-                      scale: 1,
-                    }
-              }
-              transition={{
-                duration: 2,
-                repeat: isHomeActive ? Infinity : 0,
-                repeatDelay: 1,
-                ease: "easeInOut",
-              }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <LayoutGrid
-                size={22}
-                strokeWidth={isHomeActive ? 2 : 1.5}
-                className={isHomeActive ? "fill-current" : ""}
-              />
-            </motion.div>
-          </Link>
-
-          {/* Create Post Button - with circle */}
-          {isLoggedIn ? (
-            <Link
-              to="/dashboard/my"
-              className={`flex items-center justify-center flex-1 transition-colors ${
-                isMyPostsActive
                   ? "text-black dark:text-slate-200"
                   : "text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-slate-200"
               }`}
             >
               <motion.div
                 animate={
+                  isHomeActive
+                    ? {
+                        scale: [1, 1.1, 1],
+                        rotate: [0, 5, -5, 0],
+                      }
+                    : {
+                        rotate: 0,
+                        scale: 1,
+                      }
+                }
+                transition={{
+                  duration: 2,
+                  repeat: isHomeActive ? Infinity : 0,
+                  repeatDelay: 1,
+                  ease: "easeInOut",
+                }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <LayoutGrid
+                  size={22}
+                  strokeWidth={isHomeActive ? 2 : 1.5}
+                  className={isHomeActive ? "fill-current" : ""}
+                />
+              </motion.div>
+            </Link>
+
+            {/* Create Post Button - with circle */}
+            {isLoggedIn ? (
+              <Link
+                to="/dashboard/my"
+                className={`flex items-center justify-center flex-1 transition-colors ${
                   isMyPostsActive
-                    ? {
-                        scale: [1, 1.1, 1],
-                        y: [0, -2, 0],
-                      }
-                    : {
-                        scale: 1,
-                        y: 0,
-                      }
-                }
-                transition={{
-                  duration: 2,
-                  repeat: isMyPostsActive ? Infinity : 0,
-                  repeatDelay: 1,
-                  ease: "easeInOut",
-                }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
+                    ? "text-black dark:text-slate-200"
+                    : "text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-slate-200"
+                }`}
               >
-                <CirclePlus
-                  size={22}
-                  strokeWidth={isMyPostsActive ? 2.5 : 1.5}
-                />
-              </motion.div>
-            </Link>
-          ) : (
-            <button
-              onClick={() => openAuthModal("login")}
-              className="flex items-center justify-center flex-1 text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-slate-200 transition-colors"
-            >
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
+                <motion.div
+                  animate={
+                    isMyPostsActive
+                      ? {
+                          scale: [1, 1.1, 1],
+                          y: [0, -2, 0],
+                        }
+                      : {
+                          scale: 1,
+                          y: 0,
+                        }
+                  }
+                  transition={{
+                    duration: 2,
+                    repeat: isMyPostsActive ? Infinity : 0,
+                    repeatDelay: 1,
+                    ease: "easeInOut",
+                  }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <CirclePlus
+                    size={22}
+                    strokeWidth={isMyPostsActive ? 2.5 : 1.5}
+                  />
+                </motion.div>
+              </Link>
+            ) : (
+              <button
+                onClick={() => openAuthModal("login")}
+                className="flex items-center justify-center flex-1 text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-slate-200 transition-colors"
               >
-                <CirclePlus size={22} strokeWidth={1.5} />
-              </motion.div>
-            </button>
-          )}
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <CirclePlus size={22} strokeWidth={1.5} />
+                </motion.div>
+              </button>
+            )}
 
-          {/* Profile Button */}
-          {isLoggedIn ? (
-            <Link
-              to="/profile"
-              className={`flex items-center justify-center flex-1 transition-colors ${
-                isProfileActive
-                  ? "text-black dark:text-slate-200"
-                  : "text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-slate-200"
-              }`}
-            >
-              <motion.div
-                animate={
+            {/* Profile Button */}
+            {isLoggedIn ? (
+              <Link
+                to="/profile"
+                className={`flex items-center justify-center flex-1 transition-colors ${
                   isProfileActive
-                    ? {
-                        scale: [1, 1.1, 1],
-                        y: [0, -2, 0],
-                      }
-                    : {
-                        scale: 1,
-                        y: 0,
-                      }
-                }
-                transition={{
-                  duration: 2,
-                  repeat: isProfileActive ? Infinity : 0,
-                  repeatDelay: 1,
-                  ease: "easeInOut",
-                }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
+                    ? "text-black dark:text-slate-200"
+                    : "text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-slate-200"
+                }`}
               >
-                <Annoyed size={22} strokeWidth={isProfileActive ? 2.5 : 1.5} />
-              </motion.div>
-            </Link>
-          ) : (
-            <button
-              onClick={() => openAuthModal("login")}
-              className="flex items-center justify-center flex-1 text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-slate-200 transition-colors"
-            >
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
+                <motion.div
+                  animate={
+                    isProfileActive
+                      ? {
+                          scale: [1, 1.1, 1],
+                          y: [0, -2, 0],
+                        }
+                      : {
+                          scale: 1,
+                          y: 0,
+                        }
+                  }
+                  transition={{
+                    duration: 2,
+                    repeat: isProfileActive ? Infinity : 0,
+                    repeatDelay: 1,
+                    ease: "easeInOut",
+                  }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Annoyed
+                    size={22}
+                    strokeWidth={isProfileActive ? 2.5 : 1.5}
+                  />
+                </motion.div>
+              </Link>
+            ) : (
+              <button
+                onClick={() => openAuthModal("login")}
+                className="flex items-center justify-center flex-1 text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-slate-200 transition-colors"
               >
-                <Annoyed size={22} strokeWidth={1.5} />
-              </motion.div>
-            </button>
-          )}
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Annoyed size={22} strokeWidth={1.5} />
+                </motion.div>
+              </button>
+            )}
 
-          {/* Chat Button - Last */}
-          {isLoggedIn && (
-            <Link
-              to="/chat"
-              className={`flex items-center justify-center flex-1 transition-colors relative ${
-                isChatActive
-                  ? "text-indigo-600 dark:text-indigo-400"
-                  : "text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
-              }`}
-            >
-              <motion.div
-                animate={
+            {/* Chat Button - Last */}
+            {isLoggedIn && (
+              <Link
+                to="/chat"
+                className={`flex items-center justify-center flex-1 transition-colors relative ${
                   isChatActive
-                    ? {
-                        scale: [1, 1.1, 1],
-                        y: [0, -2, 0],
-                      }
-                    : {
-                        scale: 1,
-                        y: 0,
-                      }
-                }
-                transition={{
-                  duration: 2,
-                  repeat: isChatActive ? Infinity : 0,
-                  repeatDelay: 1,
-                  ease: "easeInOut",
-                }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className="relative"
+                    ? "text-indigo-600 dark:text-indigo-400"
+                    : "text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                }`}
               >
-                <MessageCircle
-                  size={22}
-                  strokeWidth={isChatActive ? 2.5 : 1.5}
-                />
-                {hasUnreadMessages && !isChatActive && (
-                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
-                )}
-              </motion.div>
-            </Link>
-          )}
-        </div>
-      </nav>
+                <motion.div
+                  animate={
+                    isChatActive
+                      ? {
+                          scale: [1, 1.1, 1],
+                          y: [0, -2, 0],
+                        }
+                      : {
+                          scale: 1,
+                          y: 0,
+                        }
+                  }
+                  transition={{
+                    duration: 2,
+                    repeat: isChatActive ? Infinity : 0,
+                    repeatDelay: 1,
+                    ease: "easeInOut",
+                  }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative"
+                >
+                  <MessageCircle
+                    size={22}
+                    strokeWidth={isChatActive ? 2.5 : 1.5}
+                  />
+                  {hasUnreadMessages && !isChatActive && (
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
+                  )}
+                </motion.div>
+              </Link>
+            )}
+          </div>
+        </nav>
+      )}
 
       {/* Main Content */}
-      <main className="flex-1 w-full mx-auto max-w-7xl px-3 sm:px-6 py-6 sm:py-12 pb-14 sm:pb-12">
+      <main
+        className={`flex-1 w-full mx-auto ${
+          isInChatRoom
+            ? "max-w-none p-0"
+            : "max-w-7xl px-3 sm:px-6 py-6 sm:py-12 pb-14 sm:pb-12"
+        }`}
+      >
         <Outlet context={{ currentUser: user, openAuthModal }} />
       </main>
 
