@@ -37,9 +37,11 @@ export default function Layout() {
   const [lastScrollY, setLastScrollY] = useState(0);
   const { _ } = useLingui();
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
 
-  // Check if user is in a chat room on mobile (should hide footer)
-  const isInChatRoom = location.pathname === "/chat" && searchParams.has("id");
+  // Check if user is in a chat room on mobile (should hide footer and main padding)
+  const isInChatRoom =
+    isMobile && location.pathname === "/chat" && searchParams.has("id");
 
   const loginForm = useForm();
   const registerForm = useForm();
@@ -74,6 +76,13 @@ export default function Layout() {
   useUserNotifications(user?.id || null, {
     onNewMessage: handleNewMessageNotification,
   });
+
+  // Track mobile state
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Handle scroll to show/hide header on mobile
   useEffect(() => {

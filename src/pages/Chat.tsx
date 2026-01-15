@@ -140,7 +140,7 @@ export default function Chat() {
     // When in conversation list: Layout has padding, so we need negative margins
     if (selectedConversation) {
       return (
-        <div className="h-screen bg-white dark:bg-gray-900">
+        <div className="h-dvh bg-white dark:bg-gray-900">
           <ChatWindow
             key={selectedConversation.id}
             conversation={selectedConversation}
