@@ -433,7 +433,7 @@ export default function ChatWindow({
   }
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-gray-900">
+    <div className="flex flex-col h-full bg-white dark:bg-black">
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-700">
         {onBack && (
@@ -586,7 +586,7 @@ export default function ChatWindow({
         {showEmojiPicker && (
           <div
             ref={emojiPickerRef}
-            className="absolute bottom-20 md:bottom-10  left-2 right-2 sm:left-auto sm:right-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden"
+            className="absolute bottom-20 md:bottom-10  left-2 right-2 sm:left-auto sm:right-auto bg-white dark:bg-black rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden"
           >
             {/* Main tabs: Emoji / GIF */}
             <div className="flex items-center border-b border-gray-200 dark:border-gray-700">

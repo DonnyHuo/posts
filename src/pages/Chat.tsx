@@ -140,7 +140,7 @@ export default function Chat() {
     // When in conversation list: Layout has padding, so we need negative margins
     if (selectedConversation) {
       return (
-        <div className="h-dvh bg-white dark:bg-gray-900">
+        <div className="h-dvh bg-white dark:bg-black">
           <ChatWindow
             key={selectedConversation.id}
             conversation={selectedConversation}
@@ -161,7 +161,7 @@ export default function Chat() {
 
     // Conversation list view (with Layout padding)
     return (
-      <div className="-mx-3 -mt-6 -mb-14 h-[calc(100vh-56px)] bg-white dark:bg-gray-900">
+      <div className="-mx-3 -mt-6 -mb-14 h-[calc(100vh-56px)] bg-white dark:bg-black">
         <ConversationList
           selectedId={conversationId || undefined}
           onSelect={handleSelectConversation}
@@ -181,7 +181,7 @@ export default function Chat() {
 
   // Desktop view: side-by-side panels
   return (
-    <div className="h-[calc(100vh-6rem)] flex bg-white dark:bg-gray-900 rounded-xl">
+    <div className="h-[calc(100vh-6rem)] flex bg-white dark:bg-black rounded-xl">
       {/* Conversation list sidebar */}
       <div className="w-80 border-r border-gray-200 dark:border-gray-700 shrink-0">
         <ConversationList
