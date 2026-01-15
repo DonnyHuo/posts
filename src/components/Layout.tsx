@@ -225,7 +225,11 @@ export default function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-slate-100 transition-colors duration-200 flex flex-col">
+    <div
+      className={`bg-slate-50 dark:bg-black text-slate-900 dark:text-slate-100 transition-colors duration-200 flex flex-col ${
+        isInChatRoom ? "h-dvh overflow-hidden" : "min-h-screen"
+      }`}
+    >
       {/* Auth Modal */}
       <AnimatePresence>
         {authModal && (
