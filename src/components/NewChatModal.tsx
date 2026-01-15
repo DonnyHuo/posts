@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { api } from '../lib/api';
-import { User } from '../types';
-import { X, Search, Users, MessageSquare, Check } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from "react";
+import { api } from "../lib/api";
+import type { User } from "../types";
+import { X, Search, Users, MessageSquare, Check } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface NewChatModalProps {
   isOpen: boolean;
@@ -19,11 +19,11 @@ export default function NewChatModal({
   onCreateGroup,
   currentUserId,
 }: NewChatModalProps) {
-  const [mode, setMode] = useState<'private' | 'group'>('private');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [mode, setMode] = useState<"private" | "group">("private");
+  const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [groupName, setGroupName] = useState('');
+  const [groupName, setGroupName] = useState("");
   const [loading, setLoading] = useState(false);
 
   // Fetch followers/following for user search
@@ -35,12 +35,14 @@ export default function NewChatModal({
       try {
         // Fetch both followers and following
         const [followersRes, followingRes] = await Promise.all([
-          api.get('/follows/followers'),
-          api.get('/follows/following'),
+          api.get("/follows/my/followers"),
+          api.get("/follows/my/following"),
         ]);
 
-        // Combine and deduplicate
-        const allUsers = [...followersRes.data, ...followingRes.data];
+        // Combine and deduplicate (data is inside .data.data due to pagination format)
+        const followersData = followersRes.data?.data || [];
+        const followingData = followingRes.data?.data || [];
+        const allUsers = [...followersData, ...followingData];
         const uniqueUsers = allUsers.filter(
           (user, index, self) =>
             index === self.findIndex((u) => u.id === user.id) &&
@@ -49,7 +51,7 @@ export default function NewChatModal({
 
         setUsers(uniqueUsers);
       } catch (error) {
-        console.error('Failed to fetch users:', error);
+        console.error("Failed to fetch users:", error);
       } finally {
         setLoading(false);
       }
@@ -61,10 +63,10 @@ export default function NewChatModal({
   // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
-      setMode('private');
-      setSearchQuery('');
+      setMode("private");
+      setSearchQuery("");
       setSelectedUsers([]);
-      setGroupName('');
+      setGroupName("");
     }
   }, [isOpen]);
 
@@ -75,7 +77,7 @@ export default function NewChatModal({
   );
 
   const handleUserSelect = (userId: string) => {
-    if (mode === 'private') {
+    if (mode === "private") {
       onCreatePrivate(userId);
       onClose();
     } else {
@@ -127,22 +129,22 @@ export default function NewChatModal({
           {/* Mode selector */}
           <div className="flex p-2 gap-2 border-b border-gray-200 dark:border-gray-700">
             <button
-              onClick={() => setMode('private')}
+              onClick={() => setMode("private")}
               className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${
-                mode === 'private'
-                  ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600'
-                  : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                mode === "private"
+                  ? "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600"
+                  : "hover:bg-gray-100 dark:hover:bg-gray-800"
               }`}
             >
               <MessageSquare className="w-4 h-4" />
               私聊
             </button>
             <button
-              onClick={() => setMode('group')}
+              onClick={() => setMode("group")}
               className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${
-                mode === 'group'
-                  ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600'
-                  : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                mode === "group"
+                  ? "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600"
+                  : "hover:bg-gray-100 dark:hover:bg-gray-800"
               }`}
             >
               <Users className="w-4 h-4" />
@@ -151,7 +153,7 @@ export default function NewChatModal({
           </div>
 
           {/* Group name input */}
-          {mode === 'group' && (
+          {mode === "group" && (
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
               <input
                 type="text"
@@ -190,7 +192,7 @@ export default function NewChatModal({
               </div>
             ) : filteredUsers.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                {searchQuery ? '未找到用户' : '暂无可选用户'}
+                {searchQuery ? "未找到用户" : "暂无可选用户"}
               </div>
             ) : (
               filteredUsers.map((user) => (
@@ -199,8 +201,8 @@ export default function NewChatModal({
                   onClick={() => handleUserSelect(user.id)}
                   className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
                     selectedUsers.includes(user.id)
-                      ? 'bg-indigo-50 dark:bg-indigo-900/20'
-                      : ''
+                      ? "bg-indigo-50 dark:bg-indigo-900/20"
+                      : ""
                   }`}
                 >
                   {/* Avatar */}
@@ -212,20 +214,20 @@ export default function NewChatModal({
                     />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold">
-                      {user.name?.charAt(0)?.toUpperCase() || '?'}
+                      {user.name?.charAt(0)?.toUpperCase() || "?"}
                     </div>
                   )}
 
                   {/* Info */}
                   <div className="flex-1">
                     <h4 className="font-medium text-gray-900 dark:text-white">
-                      {user.name || '匿名用户'}
+                      {user.name || "匿名用户"}
                     </h4>
                     <p className="text-sm text-gray-500">{user.email}</p>
                   </div>
 
                   {/* Selection indicator */}
-                  {mode === 'group' && selectedUsers.includes(user.id) && (
+                  {mode === "group" && selectedUsers.includes(user.id) && (
                     <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center">
                       <Check className="w-4 h-4 text-white" />
                     </div>
@@ -236,7 +238,7 @@ export default function NewChatModal({
           </div>
 
           {/* Footer for group mode */}
-          {mode === 'group' && (
+          {mode === "group" && (
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={handleCreateGroup}
@@ -252,4 +254,3 @@ export default function NewChatModal({
     </AnimatePresence>
   );
 }
-

@@ -1,31 +1,32 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { api } from '../lib/api';
-import { Conversation } from '../types';
-import ConversationList from '../components/ConversationList';
-import ChatWindow from '../components/ChatWindow';
-import NewChatModal from '../components/NewChatModal';
-import { MessageSquare } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { api } from "../lib/api";
+import type { Conversation } from "../types";
+import ConversationList from "../components/ConversationList";
+import ChatWindow from "../components/ChatWindow";
+import NewChatModal from "../components/NewChatModal";
+import { MessageSquare } from "lucide-react";
 
 export default function Chat() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+
+  const [selectedConversation, setSelectedConversation] =
+    useState<Conversation | null>(null);
   const [showNewChatModal, setShowNewChatModal] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [currentUserId, setCurrentUserId] = useState<string>("");
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   // Get conversation ID from URL
-  const conversationId = searchParams.get('id');
+  const conversationId = searchParams.get("id");
 
   // Get current user ID
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const response = await api.get('/auth/me');
+        const response = await api.get("/auth/me");
         setCurrentUserId(response.data.id);
       } catch (error) {
-        console.error('Failed to fetch current user:', error);
+        console.error("Failed to fetch current user:", error);
       }
     };
     fetchCurrentUser();
@@ -34,8 +35,8 @@ export default function Chat() {
   // Handle window resize
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Fetch conversation from URL param
@@ -43,10 +44,12 @@ export default function Chat() {
     if (conversationId) {
       const fetchConversation = async () => {
         try {
-          const response = await api.get(`/messages/conversations/${conversationId}`);
+          const response = await api.get(
+            `/messages/conversations/${conversationId}`
+          );
           setSelectedConversation(response.data);
         } catch (error) {
-          console.error('Failed to fetch conversation:', error);
+          console.error("Failed to fetch conversation:", error);
           setSearchParams({});
         }
       };
@@ -66,22 +69,24 @@ export default function Chat() {
 
   const handleCreatePrivate = async (userId: string) => {
     try {
-      const response = await api.post('/messages/conversations/private', { userId });
+      const response = await api.post("/messages/conversations/private", {
+        userId,
+      });
       handleSelectConversation(response.data);
     } catch (error) {
-      console.error('Failed to create private conversation:', error);
+      console.error("Failed to create private conversation:", error);
     }
   };
 
   const handleCreateGroup = async (name: string, memberIds: string[]) => {
     try {
-      const response = await api.post('/messages/conversations/group', {
+      const response = await api.post("/messages/conversations/group", {
         name,
         memberIds,
       });
       handleSelectConversation(response.data);
     } catch (error) {
-      console.error('Failed to create group conversation:', error);
+      console.error("Failed to create group conversation:", error);
     }
   };
 
@@ -118,7 +123,7 @@ export default function Chat() {
   return (
     <div className="h-[calc(100vh-4rem)] flex bg-white dark:bg-gray-900">
       {/* Conversation list sidebar */}
-      <div className="w-80 border-r border-gray-200 dark:border-gray-700 flex-shrink-0">
+      <div className="w-80 border-r border-gray-200 dark:border-gray-700 shrink-0">
         <ConversationList
           selectedId={selectedConversation?.id}
           onSelect={handleSelectConversation}
@@ -158,4 +163,3 @@ export default function Chat() {
     </div>
   );
 }
-

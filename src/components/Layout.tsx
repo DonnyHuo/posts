@@ -5,8 +5,6 @@ import { api } from "../lib/api";
 import {
   User as UserIcon,
   X,
-  Twitter,
-  Linkedin,
   LogIn,
   UserPlus,
   Mail,
@@ -522,7 +520,10 @@ export default function Layout() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <MessageCircle size={22} strokeWidth={isChatActive ? 2.5 : 1.5} />
+                <MessageCircle
+                  size={22}
+                  strokeWidth={isChatActive ? 2.5 : 1.5}
+                />
               </motion.div>
             </Link>
           )}

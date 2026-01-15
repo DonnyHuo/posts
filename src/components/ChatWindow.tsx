@@ -1,19 +1,18 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { api } from '../lib/api';
-import { Message, Conversation } from '../types';
-import { useConversationChannel } from '../hooks/usePusher';
-import { formatDistanceToNow, format, isToday, isYesterday } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
+import { useEffect, useState, useRef, useCallback } from "react";
+import { api } from "../lib/api";
+import type { Message, Conversation } from "../types";
+import { useConversationChannel } from "../hooks/usePusher";
+import { format, isToday, isYesterday } from "date-fns";
+import { zhCN } from "date-fns/locale";
 import {
   Send,
   Image as ImageIcon,
-  MoreVertical,
   Phone,
   Video,
   Info,
   ArrowLeft,
   Smile,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface ChatWindowProps {
   conversation: Conversation;
@@ -29,7 +28,7 @@ export default function ChatWindow({
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -56,7 +55,7 @@ export default function ChatWindow({
         setHasMore(pageNum < meta.totalPages);
         setPage(pageNum);
       } catch (error) {
-        console.error('Failed to fetch messages:', error);
+        console.error("Failed to fetch messages:", error);
       } finally {
         setLoading(false);
       }
@@ -77,7 +76,7 @@ export default function ChatWindow({
   // Scroll to bottom on new message
   useEffect(() => {
     if (!loading) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, loading]);
 
@@ -104,7 +103,7 @@ export default function ChatWindow({
     try {
       await api.patch(`/messages/conversations/${conversation.id}/read`);
     } catch (error) {
-      console.error('Failed to mark as read:', error);
+      console.error("Failed to mark as read:", error);
     }
   };
 
@@ -113,7 +112,7 @@ export default function ChatWindow({
     if (!newMessage.trim() || sending) return;
 
     const content = newMessage.trim();
-    setNewMessage('');
+    setNewMessage("");
     setSending(true);
 
     // Optimistic update
@@ -121,9 +120,9 @@ export default function ChatWindow({
     const optimisticMessage: Message = {
       id: tempId,
       content,
-      type: 'TEXT',
+      type: "TEXT",
       senderId: currentUserId,
-      sender: { id: currentUserId, name: 'You' },
+      sender: { id: currentUserId, name: "You" },
       conversationId: conversation.id,
       createdAt: new Date().toISOString(),
     };
@@ -133,7 +132,7 @@ export default function ChatWindow({
     try {
       const response = await api.post(
         `/messages/conversations/${conversation.id}/messages`,
-        { content, type: 'TEXT' }
+        { content, type: "TEXT" }
       );
 
       // Replace optimistic message with real one
@@ -141,7 +140,7 @@ export default function ChatWindow({
         prev.map((msg) => (msg.id === tempId ? response.data : msg))
       );
     } catch (error) {
-      console.error('Failed to send message:', error);
+      console.error("Failed to send message:", error);
       // Remove optimistic message on error
       setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
       setNewMessage(content); // Restore input
@@ -153,7 +152,7 @@ export default function ChatWindow({
 
   // Handle Enter key
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
@@ -172,21 +171,18 @@ export default function ChatWindow({
   // Format date for message groups
   const formatMessageDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    if (isToday(date)) return '今天';
-    if (isYesterday(date)) return '昨天';
-    return format(date, 'yyyy年MM月dd日', { locale: zhCN });
+    if (isToday(date)) return "今天";
+    if (isYesterday(date)) return "昨天";
+    return format(date, "yyyy年MM月dd日", { locale: zhCN });
   };
 
   // Group messages by date
-  const groupedMessages = messages.reduce(
-    (groups, message) => {
-      const date = formatMessageDate(message.createdAt);
-      if (!groups[date]) groups[date] = [];
-      groups[date].push(message);
-      return groups;
-    },
-    {} as Record<string, Message[]>
-  );
+  const groupedMessages = messages.reduce((groups, message) => {
+    const date = formatMessageDate(message.createdAt);
+    if (!groups[date]) groups[date] = [];
+    groups[date].push(message);
+    return groups;
+  }, {} as Record<string, Message[]>);
 
   if (loading) {
     return (
@@ -218,7 +214,7 @@ export default function ChatWindow({
           />
         ) : (
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold">
-            {conversation.name?.charAt(0)?.toUpperCase() || '?'}
+            {conversation.name?.charAt(0)?.toUpperCase() || "?"}
           </div>
         )}
 
@@ -226,7 +222,7 @@ export default function ChatWindow({
           <h3 className="font-medium text-gray-900 dark:text-white">
             {conversation.name}
           </h3>
-          {conversation.type === 'GROUP' && (
+          {conversation.type === "GROUP" && (
             <p className="text-xs text-gray-500">
               {conversation.members.length} 位成员
             </p>
@@ -279,7 +275,9 @@ export default function ChatWindow({
               return (
                 <div
                   key={message.id}
-                  className={`flex items-end gap-2 ${isOwn ? 'flex-row-reverse' : ''}`}
+                  className={`flex items-end gap-2 ${
+                    isOwn ? "flex-row-reverse" : ""
+                  }`}
                 >
                   {/* Avatar (for other users) */}
                   {!isOwn && (
@@ -293,7 +291,8 @@ export default function ChatWindow({
                           />
                         ) : (
                           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
-                            {message.sender.name?.charAt(0)?.toUpperCase() || '?'}
+                            {message.sender.name?.charAt(0)?.toUpperCase() ||
+                              "?"}
                           </div>
                         ))}
                     </div>
@@ -303,30 +302,32 @@ export default function ChatWindow({
                   <div
                     className={`max-w-[70%] ${
                       isOwn
-                        ? 'bg-indigo-600 text-white rounded-2xl rounded-br-md'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-2xl rounded-bl-md'
+                        ? "bg-indigo-600 text-white rounded-2xl rounded-br-md"
+                        : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-2xl rounded-bl-md"
                     } px-4 py-2`}
                   >
-                    {conversation.type === 'GROUP' && !isOwn && showAvatar && (
+                    {conversation.type === "GROUP" && !isOwn && showAvatar && (
                       <p className="text-xs font-medium text-indigo-600 dark:text-indigo-400 mb-1">
                         {message.sender.name}
                       </p>
                     )}
-                    {message.type === 'IMAGE' ? (
+                    {message.type === "IMAGE" ? (
                       <img
                         src={message.content}
                         alt="Image"
                         className="max-w-full rounded-lg"
                       />
                     ) : (
-                      <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                      <p className="whitespace-pre-wrap break-words">
+                        {message.content}
+                      </p>
                     )}
                     <p
                       className={`text-xs mt-1 ${
-                        isOwn ? 'text-indigo-200' : 'text-gray-400'
+                        isOwn ? "text-indigo-200" : "text-gray-400"
                       }`}
                     >
-                      {format(new Date(message.createdAt), 'HH:mm')}
+                      {format(new Date(message.createdAt), "HH:mm")}
                     </p>
                   </div>
                 </div>
@@ -370,4 +371,3 @@ export default function ChatWindow({
     </div>
   );
 }
-
