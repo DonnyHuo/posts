@@ -62,54 +62,78 @@ export default function PostDetail() {
       }
     };
     fetchPost();
-  }, [id]);
+  }, [id, _]);
 
   // Set meta tags for sharing (Open Graph and Twitter Card)
   useEffect(() => {
     if (!post) return;
 
     const currentUrl = window.location.href;
-    const coverImage = post.coverUrls && post.coverUrls.length > 0 ? post.coverUrls[0] : null;
-    const description = post.content?.replace(/<[^>]*>/g, '').substring(0, 200) || post.title;
+    const coverImageUrl =
+      post.coverUrls && post.coverUrls.length > 0 ? post.coverUrls[0] : null;
+    const description =
+      post.content?.replace(/<[^>]*>/g, "").substring(0, 200) || post.title;
+
+    // Convert relative image URL to absolute URL if needed
+    const getAbsoluteImageUrl = (url: string | null): string | null => {
+      if (!url) return null;
+      // If already absolute URL (starts with http:// or https://), return as is
+      if (url.startsWith("http://") || url.startsWith("https://")) {
+        return url;
+      }
+      // If relative URL, convert to absolute
+      if (url.startsWith("/")) {
+        return `${window.location.origin}${url}`;
+      }
+      // If it's a Cloudinary URL or other CDN URL, return as is
+      return url;
+    };
+
+    const coverImage = getAbsoluteImageUrl(coverImageUrl);
 
     // Helper function to set or update meta tag
     const setMetaTag = (property: string, content: string) => {
-      let element = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement;
+      let element = document.querySelector(
+        `meta[property="${property}"]`
+      ) as HTMLMetaElement;
       if (!element) {
-        element = document.createElement('meta');
-        element.setAttribute('property', property);
+        element = document.createElement("meta");
+        element.setAttribute("property", property);
         document.head.appendChild(element);
       }
-      element.setAttribute('content', content);
+      element.setAttribute("content", content);
     };
 
     const setMetaName = (name: string, content: string) => {
-      let element = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement;
+      let element = document.querySelector(
+        `meta[name="${name}"]`
+      ) as HTMLMetaElement;
       if (!element) {
-        element = document.createElement('meta');
-        element.setAttribute('name', name);
+        element = document.createElement("meta");
+        element.setAttribute("name", name);
         document.head.appendChild(element);
       }
-      element.setAttribute('content', content);
+      element.setAttribute("content", content);
     };
 
     // Open Graph tags
-    setMetaTag('og:title', post.title);
-    setMetaTag('og:description', description);
-    setMetaTag('og:url', currentUrl);
-    setMetaTag('og:type', 'article');
+    setMetaTag("og:title", post.title);
+    setMetaTag("og:description", description);
+    setMetaTag("og:url", currentUrl);
+    setMetaTag("og:type", "article");
     if (coverImage) {
-      setMetaTag('og:image', coverImage);
-      setMetaTag('og:image:width', '1200');
-      setMetaTag('og:image:height', '630');
+      setMetaTag("og:image", coverImage);
+      setMetaTag("og:image:width", "1200");
+      setMetaTag("og:image:height", "630");
+      setMetaTag("og:image:type", "image/jpeg");
     }
 
     // Twitter Card tags
-    setMetaName('twitter:card', 'summary_large_image');
-    setMetaName('twitter:title', post.title);
-    setMetaName('twitter:description', description);
+    setMetaName("twitter:card", "summary_large_image");
+    setMetaName("twitter:title", post.title);
+    setMetaName("twitter:description", description);
     if (coverImage) {
-      setMetaName('twitter:image', coverImage);
+      setMetaName("twitter:image", coverImage);
     }
 
     // Update page title
@@ -118,14 +142,26 @@ export default function PostDetail() {
     // Cleanup function to remove meta tags when component unmounts
     return () => {
       // Reset title
-      document.title = 'Posts';
+      document.title = "Posts";
       // Remove meta tags (optional - you can keep them or remove them)
       const metaTagsToRemove = [
-        'og:title', 'og:description', 'og:url', 'og:type', 'og:image', 'og:image:width', 'og:image:height',
-        'twitter:card', 'twitter:title', 'twitter:description', 'twitter:image'
+        "og:title",
+        "og:description",
+        "og:url",
+        "og:type",
+        "og:image",
+        "og:image:width",
+        "og:image:height",
+        "og:image:type",
+        "twitter:card",
+        "twitter:title",
+        "twitter:description",
+        "twitter:image",
       ];
-      metaTagsToRemove.forEach(property => {
-        const element = document.querySelector(`meta[property="${property}"], meta[name="${property}"]`);
+      metaTagsToRemove.forEach((property) => {
+        const element = document.querySelector(
+          `meta[property="${property}"], meta[name="${property}"]`
+        );
         if (element) {
           element.remove();
         }
@@ -141,7 +177,22 @@ export default function PostDetail() {
     if (!post) return;
 
     const shareUrl = window.location.href;
-    const shareText = post.content?.replace(/<[^>]*>/g, '').substring(0, 200) || post.title;
+    const shareText =
+      post.content?.replace(/<[^>]*>/g, "").substring(0, 200) || post.title;
+    const coverImageUrl =
+      post.coverUrls && post.coverUrls.length > 0 ? post.coverUrls[0] : null;
+
+    // Convert relative image URL to absolute URL if needed
+    const getAbsoluteImageUrl = (url: string | null): string | null => {
+      if (!url) return null;
+      if (url.startsWith("http://") || url.startsWith("https://")) {
+        return url;
+      }
+      if (url.startsWith("/")) {
+        return `${window.location.origin}${url}`;
+      }
+      return url;
+    };
 
     if (navigator.share) {
       try {
@@ -151,26 +202,59 @@ export default function PostDetail() {
           url: shareUrl,
         };
 
-        // If browser supports sharing files and post has cover image, include it
-        if (post.coverUrls && post.coverUrls.length > 0 && 'canShare' in navigator) {
-          // Note: File sharing requires user interaction and file objects
-          // For now, we'll just share the URL with meta tags handling the image
+        // Try to share with image file if browser supports it
+        if (coverImageUrl && "canShare" in navigator && "files" in navigator) {
+          try {
+            const absoluteImageUrl = getAbsoluteImageUrl(coverImageUrl);
+            if (absoluteImageUrl) {
+              // Fetch the image and convert to File
+              const response = await fetch(absoluteImageUrl);
+              const blob = await response.blob();
+              const file = new File([blob], "cover.jpg", {
+                type: blob.type || "image/jpeg",
+              });
+
+              // Check if browser can share files
+              const fileShareData: ShareData = {
+                ...shareData,
+                files: [file],
+              };
+
+              if (navigator.canShare && navigator.canShare(fileShareData)) {
+                await navigator.share(fileShareData);
+                return;
+              }
+            }
+          } catch (imageErr) {
+            console.log(
+              "Failed to share with image file, falling back to URL only",
+              imageErr
+            );
+            // Fall through to share URL only
+          }
         }
 
+        // Share URL only (meta tags will handle image preview)
         await navigator.share(shareData);
-      } catch (err) {
+      } catch (err: unknown) {
         // User cancelled or share failed - fallback to copy
-        try {
-          await navigator.clipboard.writeText(shareUrl);
-          alert(_("postDetail.linkCopied"));
-        } catch (clipboardErr) {
-          console.error("Failed to copy to clipboard", clipboardErr);
+        if ((err as Error)?.name !== "AbortError") {
+          try {
+            await navigator.clipboard.writeText(shareUrl);
+            alert(_("postDetail.linkCopied"));
+          } catch (clipboardErr) {
+            console.error("Failed to copy to clipboard", clipboardErr);
+          }
         }
       }
     } else {
       // Fallback: copy to clipboard
-      navigator.clipboard.writeText(shareUrl);
-      alert(_("postDetail.linkCopied"));
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        alert(_("postDetail.linkCopied"));
+      } catch (clipboardErr) {
+        console.error("Failed to copy to clipboard", clipboardErr);
+      }
     }
   };
 
@@ -281,7 +365,7 @@ export default function PostDetail() {
                   }}
                 />
               </AnimatePresence>
-          <div className="absolute inset-0 bg-black/20"></div>
+              <div className="absolute inset-0 bg-black/20"></div>
 
               {/* Carousel Controls - only show if multiple images */}
               {post.coverUrls.length > 1 && (
@@ -343,7 +427,9 @@ export default function PostDetail() {
             {/* Author Info */}
             <div
               className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => post.author?.id && navigate(`/user/${post.author.id}`)}
+              onClick={() =>
+                post.author?.id && navigate(`/user/${post.author.id}`)
+              }
             >
               {post.author?.avatar ? (
                 <img
@@ -366,15 +452,19 @@ export default function PostDetail() {
                 <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
                   <span className="flex items-center gap-1">
                     <Calendar size={12} className="sm:w-3.5 sm:h-3.5" />
-                    {new Date(post.createdAt).toLocaleDateString(locale === "zh" ? "zh-CN" : "en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
+                    {new Date(post.createdAt).toLocaleDateString(
+                      locale === "zh" ? "zh-CN" : "en-US",
+                      {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      }
+                    )}
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock size={12} className="sm:w-3.5 sm:h-3.5" />
-                    {Math.ceil(post.content.length / 1000)} {_("postDetail.minRead")}
+                    {Math.ceil(post.content.length / 1000)}{" "}
+                    {_("postDetail.minRead")}
                   </span>
                 </div>
               </div>
@@ -387,7 +477,9 @@ export default function PostDetail() {
                 className="flex items-center gap-2 px-3 sm:px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
               >
                 <Share2 size={18} className="sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">{_("postDetail.share")}</span>
+                <span className="hidden sm:inline">
+                  {_("postDetail.share")}
+                </span>
               </button>
               {isAuthor && (
                 <Link
@@ -395,7 +487,9 @@ export default function PostDetail() {
                   className="flex items-center gap-2 px-3 sm:px-4 py-2 text-sm font-medium text-white bg-black hover:bg-slate-900 rounded-xl transition-all"
                 >
                   <Edit size={18} className="sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">{_("postDetail.edit")}</span>
+                  <span className="hidden sm:inline">
+                    {_("postDetail.edit")}
+                  </span>
                 </Link>
               )}
             </div>
@@ -439,7 +533,7 @@ export default function PostDetail() {
               />
               <span className="text-xs sm:text-sm font-medium">
                 {likeCount}
-            </span>
+              </span>
             </button>
 
             <button
@@ -456,7 +550,7 @@ export default function PostDetail() {
               />
               <span className="text-xs sm:text-sm font-medium">
                 {favoriteCount}
-            </span>
+              </span>
             </button>
           </div>
         </div>
@@ -477,4 +571,3 @@ export default function PostDetail() {
     </motion.div>
   );
 }
-
