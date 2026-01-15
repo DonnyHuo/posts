@@ -75,21 +75,38 @@ export default function PostDetail() {
       post.content?.replace(/<[^>]*>/g, "").substring(0, 200) || post.title;
 
     // Convert relative image URL to absolute URL if needed
+    // WeChat requires HTTPS URLs
     const getAbsoluteImageUrl = (url: string | null): string | null => {
       if (!url) return null;
-      // If already absolute URL (starts with http:// or https://), return as is
+
+      let absoluteUrl: string;
+
+      // If already absolute URL (starts with http:// or https://)
       if (url.startsWith("http://") || url.startsWith("https://")) {
-        return url;
+        absoluteUrl = url;
       }
       // If relative URL, convert to absolute
-      if (url.startsWith("/")) {
-        return `${window.location.origin}${url}`;
+      else if (url.startsWith("/")) {
+        absoluteUrl = `${window.location.origin}${url}`;
       }
       // If it's a Cloudinary URL or other CDN URL, return as is
-      return url;
+      else {
+        absoluteUrl = url;
+      }
+
+      // Force HTTPS for WeChat compatibility (required by WeChat)
+      // Replace http:// with https://
+      const secureUrl = absoluteUrl.replace(/^http:/, "https:");
+
+      return secureUrl;
     };
 
     const coverImage = getAbsoluteImageUrl(coverImageUrl);
+
+    // Debug: log image URL for troubleshooting
+    if (coverImage) {
+      console.log("[PostDetail] Setting cover image for sharing:", coverImage);
+    }
 
     // Helper function to set or update meta tag
     const setMetaTag = (property: string, content: string) => {
@@ -116,16 +133,21 @@ export default function PostDetail() {
       element.setAttribute("content", content);
     };
 
-    // Open Graph tags
+    // Open Graph tags (required for WeChat and other social platforms)
     setMetaTag("og:title", post.title);
     setMetaTag("og:description", description);
     setMetaTag("og:url", currentUrl);
     setMetaTag("og:type", "article");
+    setMetaTag("og:site_name", "Posts");
+
     if (coverImage) {
+      // coverImage is already HTTPS from getAbsoluteImageUrl
       setMetaTag("og:image", coverImage);
+      setMetaTag("og:image:secure_url", coverImage);
       setMetaTag("og:image:width", "1200");
       setMetaTag("og:image:height", "630");
       setMetaTag("og:image:type", "image/jpeg");
+      setMetaTag("og:image:alt", post.title);
     }
 
     // Twitter Card tags
@@ -134,6 +156,13 @@ export default function PostDetail() {
     setMetaName("twitter:description", description);
     if (coverImage) {
       setMetaName("twitter:image", coverImage);
+    }
+
+    // WeChat specific meta tags
+    // WeChat reads og:image, but also checks these for compatibility
+    setMetaName("description", description);
+    if (coverImage) {
+      setMetaName("image", coverImage);
     }
 
     // Update page title
@@ -149,14 +178,19 @@ export default function PostDetail() {
         "og:description",
         "og:url",
         "og:type",
+        "og:site_name",
         "og:image",
+        "og:image:secure_url",
         "og:image:width",
         "og:image:height",
         "og:image:type",
+        "og:image:alt",
         "twitter:card",
         "twitter:title",
         "twitter:description",
         "twitter:image",
+        "description",
+        "image",
       ];
       metaTagsToRemove.forEach((property) => {
         const element = document.querySelector(
