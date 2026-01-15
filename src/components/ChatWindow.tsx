@@ -207,38 +207,6 @@ export default function ChatWindow({
     };
   }, [conversation.id]);
 
-  // Polling fallback for when Pusher is not configured
-  useEffect(() => {
-    const pollInterval = setInterval(async () => {
-      try {
-        const response = await api.get(
-          `/messages/conversations/${conversation.id}/messages`,
-          { params: { page: 1, limit: 50 } }
-        );
-        const { data } = response.data;
-        
-        setMessages((prev) => {
-          // Only update if there are new messages
-          if (data.length > prev.length) {
-            // Find truly new messages (not in current state)
-            const newMessages = data.filter(
-              (msg: Message) => !prev.some((p) => p.id === msg.id)
-            );
-            if (newMessages.length > 0) {
-              console.log("[ChatWindow] Polling found new messages:", newMessages.length);
-              return data;
-            }
-          }
-          return prev;
-        });
-      } catch (error) {
-        // Silent fail for polling
-      }
-    }, 3000); // Poll every 3 seconds
-
-    return () => clearInterval(pollInterval);
-  }, [conversation.id]);
-
   // Scroll to bottom on new message
   useEffect(() => {
     if (!loading) {

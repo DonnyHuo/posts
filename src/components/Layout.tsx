@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { api } from "../lib/api";
@@ -20,6 +20,7 @@ import { LoadingSpinner } from "./LoadingSpinner";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTheme } from "../hooks/useTheme";
 import { useLingui } from "@lingui/react";
+import { useUserNotifications } from "../hooks/usePusher";
 
 type AuthModal = "login" | "register" | null;
 
@@ -34,6 +35,7 @@ export default function Layout() {
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const { _ } = useLingui();
+  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
 
   const loginForm = useForm();
   const registerForm = useForm();
@@ -48,6 +50,26 @@ export default function Layout() {
   const isProfileActive = location.pathname === "/profile";
   const isChatActive = location.pathname === "/chat";
   const isMyPostsActive = location.pathname === "/dashboard/my";
+
+  // Clear unread indicator when entering chat page
+  useEffect(() => {
+    if (isChatActive) {
+      setHasUnreadMessages(false);
+    }
+  }, [isChatActive]);
+
+  // Listen for new message notifications via Pusher
+  const handleNewMessageNotification = useCallback(() => {
+    // Only show red dot if not on chat page
+    if (!location.pathname.startsWith("/chat")) {
+      setHasUnreadMessages(true);
+    }
+  }, [location.pathname]);
+
+  // Subscribe to user notifications when logged in
+  useUserNotifications(user?.id || null, {
+    onNewMessage: handleNewMessageNotification,
+  });
 
   // Handle scroll to show/hide header on mobile
   useEffect(() => {
@@ -401,7 +423,7 @@ export default function Layout() {
                 </Link>
                 <Link
                   to="/chat"
-                  className={`p-2 rounded-xl transition-all ${
+                  className={`p-2 rounded-xl transition-all relative ${
                     isChatActive
                       ? "bg-indigo-600 text-white"
                       : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
@@ -409,6 +431,9 @@ export default function Layout() {
                   title="消息"
                 >
                   <MessageCircle size={20} />
+                  {hasUnreadMessages && !isChatActive && (
+                    <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-slate-800" />
+                  )}
                 </Link>
               </>
             )}
@@ -594,7 +619,7 @@ export default function Layout() {
           {isLoggedIn && (
             <Link
               to="/chat"
-              className={`flex items-center justify-center flex-1 transition-colors ${
+              className={`flex items-center justify-center flex-1 transition-colors relative ${
                 isChatActive
                   ? "text-indigo-600 dark:text-indigo-400"
                   : "text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
@@ -620,11 +645,15 @@ export default function Layout() {
                 }}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
+                className="relative"
               >
                 <MessageCircle
                   size={22}
                   strokeWidth={isChatActive ? 2.5 : 1.5}
                 />
+                {hasUnreadMessages && !isChatActive && (
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
+                )}
               </motion.div>
             </Link>
           )}
