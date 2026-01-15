@@ -22,6 +22,9 @@ import {
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTheme } from "../hooks/useTheme";
+import { useLocale } from "../hooks/useLocale";
+import { locales } from "../i18n";
+import { useLingui } from "@lingui/react";
 
 // Cloudinary configuration
 const CLOUDINARY_CONFIG = {
@@ -60,6 +63,10 @@ export default function Profile() {
 
   // Theme
   const { theme, toggleTheme } = useTheme();
+
+  // Locale
+  const { locale, changeLocale } = useLocale();
+  const { _ } = useLingui();
 
   // Disable body scroll when modal/drawer is open
   useEffect(() => {
@@ -215,14 +222,14 @@ export default function Profile() {
 
     try {
       await api.patch(`/users/${user.id}`, editForm);
-      setMessage({ type: "success", text: "Profile updated successfully!" });
+      setMessage({ type: "success", text: _("profile.updateSuccess") });
       // 保存成功后刷新页面以更新 Layout 中的用户信息
       setTimeout(() => {
         window.location.reload();
       }, 500);
     } catch (err) {
       console.error("Update profile failed:", err);
-      setMessage({ type: "error", text: "Failed to update profile" });
+      setMessage({ type: "error", text: _("profile.updateFailed") });
     } finally {
       setSaving(false);
     }
@@ -246,7 +253,7 @@ export default function Profile() {
       setEditForm({ ...editForm, avatar: data.secure_url });
     } catch (error) {
       console.error("Failed to upload avatar:", error);
-      setMessage({ type: "error", text: "Failed to upload image" });
+      setMessage({ type: "error", text: _("profile.uploadFailed") });
     } finally {
       setUploadingAvatar(false);
     }
@@ -290,21 +297,21 @@ export default function Profile() {
           <button
             onClick={openEditModal}
             className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/15 dark:hover:bg-white/25 text-slate-600 dark:text-white transition-all"
-            title="Edit Profile"
+            title={_("profile.editProfile")}
           >
             <Edit3 size={16} />
           </button>
           <button
             onClick={() => setIsSettingsOpen(true)}
             className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/15 dark:hover:bg-white/25 text-slate-600 dark:text-white transition-all"
-            title="Settings"
+            title={_("profile.settings")}
           >
             <Settings size={16} />
           </button>
           <button
             onClick={handleLogout}
             className="p-2 rounded-lg bg-slate-100 hover:bg-red-100 dark:bg-white/15 dark:hover:bg-red-500/80 text-slate-600 hover:text-red-600 dark:text-white transition-all"
-            title="Sign Out"
+            title={_("nav.signOut")}
           >
             <LogOut size={16} />
           </button>
@@ -342,13 +349,13 @@ export default function Profile() {
                     <strong className="text-slate-900 dark:text-white">
                       {stats.followersCount}
                     </strong>{" "}
-                    followers
+                    {_("profile.followers")}
                   </span>
                   <span>
                     <strong className="text-slate-900 dark:text-white">
                       {stats.followingCount}
                     </strong>{" "}
-                    following
+                    {_("profile.following")}
                   </span>
                 </div>
               )}
@@ -371,10 +378,10 @@ export default function Profile() {
             <span className="flex items-center gap-1.5">
               <Calendar size={14} className="shrink-0" />
               <span>
-                Joined{" "}
+                {_("profile.joined")}{" "}
                 {user?.createdAt
                   ? new Date(user.createdAt).toLocaleDateString()
-                  : "Unknown"}
+                  : _("common.unknown")}
               </span>
             </span>
           </div>
@@ -387,13 +394,13 @@ export default function Profile() {
                 <strong className="text-slate-900 dark:text-white">
                   {stats.followersCount}
                 </strong>{" "}
-                followers
+                {_("profile.followers")}
               </span>
               <span className="sm:hidden text-slate-600 dark:text-slate-400">
                 <strong className="text-slate-900 dark:text-white">
                   {stats.followingCount}
                 </strong>{" "}
-                following
+                {_("profile.following")}
               </span>
               {/* likes/favorites received */}
               <div className="flex items-center gap-1 sm:gap-1.5 text-slate-600 dark:text-slate-400">
@@ -401,14 +408,18 @@ export default function Profile() {
                 <strong className="text-slate-900 dark:text-white">
                   {stats.likesReceived}
                 </strong>
-                <span className="hidden sm:inline">likes received</span>
+                <span className="hidden sm:inline">
+                  {_("profile.likesReceived")}
+                </span>
               </div>
               <div className="flex items-center gap-1 sm:gap-1.5 text-slate-600 dark:text-slate-400">
                 <Bookmark size={14} className="text-amber-500" />
                 <strong className="text-slate-900 dark:text-white">
                   {stats.favoritesReceived}
                 </strong>
-                <span className="hidden sm:inline">saves received</span>
+                <span className="hidden sm:inline">
+                  {_("profile.savesReceived")}
+                </span>
               </div>
             </div>
           )}
@@ -436,7 +447,7 @@ export default function Profile() {
               <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <Edit3 size={20} className="text-black dark:text-slate-200" />
-                  Edit Profile
+                  {_("profile.editProfile")}
                 </h2>
                 <button
                   onClick={() => setIsEditing(false)}
@@ -462,7 +473,7 @@ export default function Profile() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Display Name
+                    {_("profile.displayName")}
                   </label>
                   <input
                     type="text"
@@ -471,13 +482,13 @@ export default function Profile() {
                       setEditForm({ ...editForm, name: e.target.value })
                     }
                     className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-black dark:ring-slate-800 focus:border-transparent outline-none transition-all"
-                    placeholder="Your display name"
+                    placeholder={_("profile.displayNamePlaceholder")}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Bio / Personal Signature
+                    {_("profile.bio")}
                   </label>
                   <textarea
                     value={editForm.bio}
@@ -487,7 +498,7 @@ export default function Profile() {
                     rows={3}
                     maxLength={200}
                     className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-black dark:ring-slate-800 focus:border-transparent outline-none transition-all resize-none"
-                    placeholder="Write something about yourself..."
+                    placeholder={_("profile.bioPlaceholder")}
                   />
                   <p className="text-xs text-slate-400 mt-1">
                     {editForm.bio.length}/200
@@ -496,7 +507,7 @@ export default function Profile() {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Avatar
+                    {_("profile.avatar")}
                   </label>
                   <input
                     ref={fileInputRef}
@@ -528,7 +539,9 @@ export default function Profile() {
                       <UserIcon size={28} className="text-slate-400" />
                     )}
                   </div>
-                  <p className="text-xs text-slate-400 mt-2">Click to upload</p>
+                  <p className="text-xs text-slate-400 mt-2">
+                    {_("profile.clickToUpload")}
+                  </p>
                 </div>
 
                 <div className="flex gap-3 pt-2">
@@ -537,7 +550,7 @@ export default function Profile() {
                     onClick={() => setIsEditing(false)}
                     className="flex-1 px-4 py-3 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                   >
-                    Cancel
+                    {_("common.cancel")}
                   </button>
                   <button
                     type="submit"
@@ -545,7 +558,7 @@ export default function Profile() {
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-black hover:bg-slate-900 disabled:opacity-50 text-white font-medium rounded-xl transition-all"
                   >
                     <Save size={18} />
-                    {saving ? "Saving..." : "Save"}
+                    {saving ? _("common.saving") : _("common.save")}
                   </button>
                 </div>
               </form>
@@ -566,7 +579,7 @@ export default function Profile() {
                 : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
             }`}
           >
-            Liked
+            {_("tabs.liked")}
             <span
               className={`ml-1 ${
                 activeTab === "likes"
@@ -585,7 +598,7 @@ export default function Profile() {
                 : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
             }`}
           >
-            Saved
+            {_("tabs.saved")}
             <span
               className={`ml-1 ${
                 activeTab === "favorites"
@@ -604,7 +617,7 @@ export default function Profile() {
                 : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
             }`}
           >
-            Commented
+            {_("tabs.commented")}
             <span
               className={`ml-1 ${
                 activeTab === "comments"
@@ -635,10 +648,10 @@ export default function Profile() {
                         className="mx-auto text-slate-300 dark:text-slate-600 mb-4"
                       />
                       <p className="text-slate-500 dark:text-slate-400">
-                        No liked posts yet
+                        {_("profile.noLikedPosts")}
                       </p>
                       <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
-                        Posts you like will appear here
+                        {_("profile.likedPostsHint")}
                       </p>
                     </div>
                   ) : (
@@ -738,10 +751,10 @@ export default function Profile() {
                         className="mx-auto text-slate-300 dark:text-slate-600 mb-4"
                       />
                       <p className="text-slate-500 dark:text-slate-400">
-                        No saved posts yet
+                        {_("profile.noSavedPosts")}
                       </p>
                       <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
-                        Posts you save will appear here
+                        {_("profile.savedPostsHint")}
                       </p>
                     </div>
                   ) : (
@@ -840,10 +853,10 @@ export default function Profile() {
                         className="mx-auto text-slate-300 dark:text-slate-600 mb-4"
                       />
                       <p className="text-slate-500 dark:text-slate-400">
-                        No commented posts yet
+                        {_("profile.noCommentedPosts")}
                       </p>
                       <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
-                        Posts you comment on will appear here
+                        {_("profile.commentedPostsHint")}
                       </p>
                     </div>
                   ) : (
@@ -962,7 +975,7 @@ export default function Profile() {
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-800">
                 <span className="font-semibold text-slate-900 dark:text-white">
-                  Settings
+                  {_({ id: "settings.title", message: "Settings" })}
                 </span>
                 <button
                   onClick={() => setIsSettingsOpen(false)}
@@ -982,7 +995,12 @@ export default function Profile() {
                   <div className="flex items-center gap-3">
                     {theme === "dark" ? <Moon size={18} /> : <Sun size={18} />}
                     <span className="text-sm text-slate-900 dark:text-white">
-                      {theme === "dark" ? "Dark Mode" : "Light Mode"}
+                      {theme === "dark"
+                        ? _({ id: "settings.darkMode", message: "Dark mode" })
+                        : _({
+                            id: "settings.lightMode",
+                            message: "Light mode",
+                          })}
                     </span>
                   </div>
                   <div
@@ -999,15 +1017,20 @@ export default function Profile() {
                 </button>
 
                 {/* Language */}
-                <div className="flex items-center justify-between px-4 py-3 opacity-50">
+                <button
+                  onClick={() => changeLocale(locale === "en" ? "zh" : "en")}
+                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                >
                   <div className="flex items-center gap-3">
                     <Globe size={18} />
                     <span className="text-sm text-slate-900 dark:text-white">
-                      Language
+                      {_({ id: "settings.language", message: "Language" })}
                     </span>
                   </div>
-                  <span className="text-xs text-slate-400">English</span>
-                </div>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    {locales[locale]}
+                  </span>
+                </button>
               </div>
             </motion.div>
 
@@ -1023,7 +1046,7 @@ export default function Profile() {
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-800">
                 <span className="font-semibold text-slate-900 dark:text-white">
-                  Settings
+                  {_({ id: "settings.title", message: "Settings" })}
                 </span>
                 <button
                   onClick={() => setIsSettingsOpen(false)}
@@ -1043,7 +1066,12 @@ export default function Profile() {
                   <div className="flex items-center gap-3">
                     {theme === "dark" ? <Moon size={18} /> : <Sun size={18} />}
                     <span className="text-sm text-slate-900 dark:text-white">
-                      {theme === "dark" ? "Dark Mode" : "Light Mode"}
+                      {theme === "dark"
+                        ? _({ id: "settings.darkMode", message: "Dark mode" })
+                        : _({
+                            id: "settings.lightMode",
+                            message: "Light mode",
+                          })}
                     </span>
                   </div>
                   <div
@@ -1060,15 +1088,20 @@ export default function Profile() {
                 </button>
 
                 {/* Language */}
-                <div className="flex items-center justify-between px-4 py-3 opacity-50">
+                <button
+                  onClick={() => changeLocale(locale === "en" ? "zh" : "en")}
+                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                >
                   <div className="flex items-center gap-3">
                     <Globe size={18} />
                     <span className="text-sm text-slate-900 dark:text-white">
-                      Language
+                      {_({ id: "settings.language", message: "Language" })}
                     </span>
                   </div>
-                  <span className="text-xs text-slate-400">English</span>
-                </div>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    {locales[locale]}
+                  </span>
+                </button>
               </div>
             </motion.div>
           </>

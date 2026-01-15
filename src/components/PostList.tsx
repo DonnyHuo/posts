@@ -12,6 +12,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { motion } from "framer-motion";
+import { useLingui } from "@lingui/react";
 
 interface PostListProps {
   myPosts?: boolean;
@@ -33,6 +34,7 @@ export default function PostList({
   publishFilter,
 }: PostListProps) {
   const navigate = useNavigate();
+  const { _ } = useLingui();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -166,12 +168,12 @@ export default function PostList({
   }, [hasMore, loadingMore, loading, searchKeyword]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this post?")) return;
+    if (!confirm(_("postList.confirmDelete"))) return;
     try {
       await api.delete(`/posts/${id}`);
       setPosts(posts.filter((post) => post.id !== id));
     } catch {
-      alert("Failed to delete post");
+      alert(_("postList.deleteFailed"));
     }
   };
 
@@ -180,7 +182,7 @@ export default function PostList({
       const res = await api.patch(`/posts/${post.id}/publish`);
       setPosts(posts.map((p) => (p.id === post.id ? res.data : p)));
     } catch {
-      alert("Failed to update publish status");
+      alert(_("postList.publishFailed"));
     }
   };
 
@@ -203,7 +205,7 @@ export default function PostList({
         })
       );
     } catch {
-      alert("Please login to like posts");
+      alert(_("postList.loginToLike"));
     }
   };
 
@@ -225,25 +227,28 @@ export default function PostList({
 
   return (
     <>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-6">
+      {/* Masonry layout for mobile, grid for desktop */}
+      <div className="columns-2 gap-2 sm:columns-auto sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
         {filteredPosts.length === 0 ? (
           <div className="col-span-full text-center py-20 bg-white dark:bg-[#161616] rounded-2xl border border-slate-200 dark:border-slate-800">
             <div className="text-6xl mb-4 opacity-50">
               {searchKeyword.trim() ? "🔍" : "📝"}
             </div>
             <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-              {searchKeyword.trim() ? "No Results Found" : "Nothing Here Yet"}
+              {searchKeyword.trim()
+                ? _("postList.noResults")
+                : _("postList.nothingYet")}
             </h3>
             <p className="text-slate-500 dark:text-slate-400">
               {searchKeyword.trim()
-                ? `No posts match "${searchKeyword}"`
+                ? _("postList.noMatch") + ` "${searchKeyword}"`
                 : likedPosts
-                ? "You haven't liked any posts yet!"
+                ? _("postList.noLiked")
                 : favoritedPosts
-                ? "You haven't favorited any posts yet!"
+                ? _("postList.noFavorited")
                 : commentedPosts
-                ? "You haven't commented on any posts yet!"
-                : "Be the first to share your thoughts!"}
+                ? _("postList.noCommented")
+                : _("postList.beFirst")}
             </p>
           </div>
         ) : (
@@ -251,19 +256,19 @@ export default function PostList({
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              transition={{ delay: index * 0.05 }}
               key={post.id}
               onClick={() => {
                 navigate(`/posts/${post.id}`);
               }}
-              className={`group flex flex-col bg-white dark:bg-[#161616] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-all hover:shadow-2xl hover:shadow-slate-200/50 dark:hover:shadow-black/50 cursor-pointer ${
+              className={`group flex flex-col bg-white dark:bg-[#161616] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 transition-all hover:shadow-2xl hover:shadow-slate-200/50 dark:hover:shadow-black/50 cursor-pointer break-inside-avoid mb-2 sm:mb-0 ${
                 !post.published
                   ? "opacity-75 border-dashed border-slate-300 dark:border-slate-600"
                   : ""
               }`}
             >
               {/* Card Header / Cover Image */}
-              <div className="h-48 sm:h-56 lg:h-64 relative overflow-hidden">
+              <div className="aspect-4/3 sm:h-56 lg:h-64 sm:aspect-auto relative overflow-hidden">
                 {post.coverUrls && post.coverUrls.length > 0 ? (
                   <>
                     <img
@@ -312,7 +317,7 @@ export default function PostList({
                 {!post.published && (
                   <div className="absolute top-3 sm:top-4 right-3 sm:right-4 z-10">
                     <span className="bg-yellow-100 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded uppercase tracking-wide border border-yellow-200 dark:border-yellow-500/20 backdrop-blur-sm">
-                      Draft
+                      {_("posts.draft")}
                     </span>
                   </div>
                 )}
@@ -356,7 +361,7 @@ export default function PostList({
                         </div>
                       )}
                       <span className="text-[10px] sm:text-xs font-medium text-slate-900 dark:text-white truncate min-w-0 max-w-[120px] sm:max-w-[200px]">
-                        {post.author?.name || "Anonymous"}
+                        {post.author?.name || _("postList.anonymous")}
                       </span>
                     </div>
                   )}
@@ -372,7 +377,11 @@ export default function PostList({
                             handleTogglePublish(post);
                           }}
                           className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
-                          title={post.published ? "Unpublish" : "Publish"}
+                          title={
+                            post.published
+                              ? _("postList.unpublish")
+                              : _("postList.publish")
+                          }
                         >
                           {post.published ? (
                             <Eye size={14} className="sm:w-4 sm:h-4" />
@@ -436,12 +445,12 @@ export default function PostList({
           {loadingMore && (
             <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
               <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-700 border-t-black dark:border-t-slate-400 rounded-full animate-spin"></div>
-              <span className="text-sm">Loading more...</span>
+              <span className="text-sm">{_("postList.loadingMore")}</span>
             </div>
           )}
           {!hasMore && posts.length > 0 && (
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              No more posts to load
+              {_("postList.noMore")}
             </p>
           )}
         </div>

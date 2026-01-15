@@ -1,0 +1,206 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-01-15\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+#: Common
+msgid "common.back"
+msgstr "Back"
+
+msgid "common.save"
+msgstr "Save"
+
+msgid "common.cancel"
+msgstr "Cancel"
+
+msgid "common.loading"
+msgstr "Loading..."
+
+msgid "common.error"
+msgstr "Error"
+
+msgid "common.success"
+msgstr "Success"
+
+#: Navigation
+msgid "nav.home"
+msgstr "Home"
+
+msgid "nav.myPosts"
+msgstr "My Posts"
+
+msgid "nav.profile"
+msgstr "Profile"
+
+msgid "nav.signIn"
+msgstr "Sign In"
+
+msgid "nav.signOut"
+msgstr "Sign Out"
+
+#: Profile
+msgid "profile.editProfile"
+msgstr "Edit Profile"
+
+msgid "profile.settings"
+msgstr "Settings"
+
+msgid "profile.followers"
+msgstr "followers"
+
+msgid "profile.following"
+msgstr "following"
+
+msgid "profile.likesReceived"
+msgstr "likes received"
+
+msgid "profile.savesReceived"
+msgstr "saves received"
+
+msgid "profile.joined"
+msgstr "Joined"
+
+msgid "profile.displayName"
+msgstr "Display Name"
+
+msgid "profile.bio"
+msgstr "Bio / Personal Signature"
+
+msgid "profile.avatar"
+msgstr "Avatar"
+
+msgid "profile.updateSuccess"
+msgstr "Profile updated successfully!"
+
+msgid "profile.updateFailed"
+msgstr "Failed to update profile"
+
+#: Settings
+msgid "settings.title"
+msgstr "Settings"
+
+msgid "settings.theme"
+msgstr "Theme"
+
+msgid "settings.darkMode"
+msgstr "Dark mode"
+
+msgid "settings.lightMode"
+msgstr "Light mode"
+
+msgid "settings.language"
+msgstr "Language"
+
+#: Posts
+msgid "posts.latestArticles"
+msgstr "Latest Articles"
+
+msgid "posts.myPosts"
+msgstr "My Posts"
+
+msgid "posts.newPost"
+msgstr "New Post"
+
+msgid "posts.new"
+msgstr "New"
+
+msgid "posts.all"
+msgstr "All"
+
+msgid "posts.published"
+msgstr "Published"
+
+msgid "posts.draft"
+msgstr "Draft"
+
+msgid "posts.noPosts"
+msgstr "No posts yet"
+
+msgid "posts.createFirst"
+msgstr "Create your first post"
+
+msgid "posts.searchPlaceholder"
+msgstr "Search posts..."
+
+#: Post Editor
+msgid "editor.title"
+msgstr "Title"
+
+msgid "editor.titlePlaceholder"
+msgstr "Enter your post title..."
+
+msgid "editor.content"
+msgstr "Content"
+
+msgid "editor.contentPlaceholder"
+msgstr "Write your content here..."
+
+msgid "editor.coverImages"
+msgstr "Cover Images"
+
+msgid "editor.saveDraft"
+msgstr "Save Draft"
+
+msgid "editor.publish"
+msgstr "Publish"
+
+msgid "editor.update"
+msgstr "Update"
+
+msgid "editor.required"
+msgstr "Required"
+
+#: User Profile
+msgid "userProfile.follow"
+msgstr "Follow"
+
+msgid "userProfile.following"
+msgstr "Following"
+
+msgid "userProfile.posts"
+msgstr "Posts"
+
+msgid "userProfile.userNotFound"
+msgstr "User not found"
+
+#: Tabs
+msgid "tabs.liked"
+msgstr "Liked"
+
+msgid "tabs.saved"
+msgstr "Saved"
+
+msgid "tabs.commented"
+msgstr "Commented"
+
+#: Auth
+msgid "auth.signIn"
+msgstr "Sign In"
+
+msgid "auth.signUp"
+msgstr "Sign Up"
+
+msgid "auth.email"
+msgstr "Email"
+
+msgid "auth.password"
+msgstr "Password"
+
+msgid "auth.name"
+msgstr "Name"
+
+msgid "auth.confirmPassword"
+msgstr "Confirm Password"
+
+msgid "auth.forgotPassword"
+msgstr "Forgot password?"
+
+msgid "auth.noAccount"
+msgstr "Don't have an account?"
+
+msgid "auth.hasAccount"
+msgstr "Already have an account?"
+

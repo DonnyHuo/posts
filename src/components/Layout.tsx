@@ -14,11 +14,13 @@ import {
   Plus,
   LayoutGrid,
   Annoyed,
+  MessageCircle,
 } from "lucide-react";
 import type { User } from "../types";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTheme } from "../hooks/useTheme";
+import { useLingui } from "@lingui/react";
 
 type AuthModal = "login" | "register" | null;
 
@@ -32,6 +34,7 @@ export default function Layout() {
   const { theme } = useTheme();
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const { _ } = useLingui();
 
   const loginForm = useForm();
   const registerForm = useForm();
@@ -44,6 +47,7 @@ export default function Layout() {
     location.pathname === "/dashboard" ||
     location.pathname === "/";
   const isProfileActive = location.pathname === "/profile";
+  const isChatActive = location.pathname === "/chat";
 
   // Handle scroll to show/hide header on mobile
   useEffect(() => {
@@ -120,7 +124,7 @@ export default function Layout() {
       loginForm.reset();
     } catch (err: unknown) {
       console.error("Login error:", err);
-      let errorMessage = "Login failed";
+      let errorMessage = _("auth.loginFailed");
       const error = err as {
         response?: { data?: { message?: string | string[] } };
         message?: string;
@@ -160,7 +164,9 @@ export default function Layout() {
       };
       const msg = error.response?.data?.message;
       setAuthError(
-        Array.isArray(msg) ? msg.join(", ") : msg || "Registration failed"
+        Array.isArray(msg)
+          ? msg.join(", ")
+          : msg || _("auth.registrationFailed")
       );
     } finally {
       setAuthLoading(false);
@@ -209,10 +215,10 @@ export default function Layout() {
                       <LogIn className="h-7 w-7 text-black dark:text-slate-200" />
                     </div>
                     <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
-                      Welcome back
+                      {_("auth.welcomeBack")}
                     </h3>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">
-                      Sign in to your account
+                      {_("auth.signInSubtitle")}
                     </p>
                   </div>
 
@@ -228,7 +234,7 @@ export default function Layout() {
                       <input
                         {...loginForm.register("email", { required: true })}
                         type="email"
-                        placeholder="Email address"
+                        placeholder={_("auth.emailPlaceholder")}
                         className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-black dark:ring-slate-800 focus:border-transparent outline-none transition-all"
                       />
                     </div>
@@ -240,7 +246,7 @@ export default function Layout() {
                       <input
                         {...loginForm.register("password", { required: true })}
                         type="password"
-                        placeholder="Password"
+                        placeholder={_("auth.passwordPlaceholder")}
                         className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-black dark:ring-slate-800 focus:border-transparent outline-none transition-all"
                       />
                     </div>
@@ -256,19 +262,19 @@ export default function Layout() {
                       disabled={authLoading}
                       className="w-full bg-black dark:bg-white dark:text-black hover:bg-slate-900 dark:hover:bg-slate-100 disabled:opacity-50 text-white font-medium py-3 rounded-xl transition-all"
                     >
-                      {authLoading ? "Signing in..." : "Sign in"}
+                      {authLoading ? _("auth.signingIn") : _("auth.signIn")}
                     </button>
                   </form>
 
                   <div className="mt-6 text-center">
                     <span className="text-slate-500 dark:text-slate-400">
-                      Don't have an account?{" "}
+                      {_("auth.noAccount")}{" "}
                     </span>
                     <button
                       onClick={() => switchAuthModal("register")}
                       className="text-black dark:text-slate-200 hover:underline font-medium"
                     >
-                      Sign up
+                      {_("auth.signUp")}
                     </button>
                   </div>
                 </>
@@ -279,10 +285,10 @@ export default function Layout() {
                       <UserPlus className="h-7 w-7 text-green-600 dark:text-green-400" />
                     </div>
                     <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
-                      Create account
+                      {_("auth.createAccount")}
                     </h3>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">
-                      Join our community today
+                      {_("auth.joinCommunity")}
                     </p>
                   </div>
 
@@ -298,7 +304,7 @@ export default function Layout() {
                       <input
                         {...registerForm.register("name", { required: true })}
                         type="text"
-                        placeholder="Full Name"
+                        placeholder={_("auth.fullName")}
                         className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
                       />
                     </div>
@@ -310,7 +316,7 @@ export default function Layout() {
                       <input
                         {...registerForm.register("email", { required: true })}
                         type="email"
-                        placeholder="Email address"
+                        placeholder={_("auth.emailPlaceholder")}
                         className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
                       />
                     </div>
@@ -325,7 +331,7 @@ export default function Layout() {
                           minLength: 6,
                         })}
                         type="password"
-                        placeholder="Password (min 6 chars)"
+                        placeholder={_("auth.passwordMinChars")}
                         className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
                       />
                     </div>
@@ -341,19 +347,21 @@ export default function Layout() {
                       disabled={authLoading}
                       className="w-full bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white font-medium py-3 rounded-xl transition-all shadow-lg shadow-green-500/20"
                     >
-                      {authLoading ? "Creating account..." : "Sign up"}
+                      {authLoading
+                        ? _("auth.creatingAccount")
+                        : _("auth.signUp")}
                     </button>
                   </form>
 
                   <div className="mt-6 text-center">
                     <span className="text-slate-500 dark:text-slate-400">
-                      Already have an account?{" "}
+                      {_("auth.hasAccount")}{" "}
                     </span>
                     <button
                       onClick={() => switchAuthModal("login")}
                       className="text-green-600 dark:text-green-400 hover:underline font-medium"
                     >
-                      Sign in
+                      {_("auth.signIn")}
                     </button>
                   </div>
                 </>
@@ -383,13 +391,26 @@ export default function Layout() {
           <div className="flex items-center gap-4 shrink-0">
             {/* Create Post Button - Only for logged in users */}
             {isLoggedIn && (
-              <Link
-                to="/dashboard/my"
-                className="p-2 rounded-xl bg-black dark:bg-white dark:text-black hover:bg-slate-900 dark:hover:bg-slate-100 text-white transition-all"
-                title="My Blog"
-              >
-                <Plus size={20} />
-              </Link>
+              <>
+                <Link
+                  to="/dashboard/my"
+                  className="p-2 rounded-xl bg-black dark:bg-white dark:text-black hover:bg-slate-900 dark:hover:bg-slate-100 text-white transition-all"
+                  title="My Blog"
+                >
+                  <Plus size={20} />
+                </Link>
+                <Link
+                  to="/chat"
+                  className={`p-2 rounded-xl transition-all ${
+                    isChatActive
+                      ? "bg-indigo-600 text-white"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                  }`}
+                  title="消息"
+                >
+                  <MessageCircle size={20} />
+                </Link>
+              </>
             )}
 
             {/* Profile Menu or Login Button */}
@@ -418,7 +439,7 @@ export default function Layout() {
                 className="text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors flex items-center gap-1"
               >
                 <LogIn size={16} />
-                <span>Sign In</span>
+                <span>{_("nav.signIn")}</span>
               </button>
             )}
           </div>
@@ -469,6 +490,42 @@ export default function Layout() {
               />
             </motion.div>
           </Link>
+
+          {/* Chat Button - Center Left */}
+          {isLoggedIn && (
+            <Link
+              to="/chat"
+              className={`flex items-center justify-center flex-1 transition-colors ${
+                isChatActive
+                  ? "text-indigo-600 dark:text-indigo-400"
+                  : "text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+              }`}
+            >
+              <motion.div
+                animate={
+                  isChatActive
+                    ? {
+                        scale: [1, 1.1, 1],
+                        y: [0, -2, 0],
+                      }
+                    : {
+                        scale: 1,
+                        y: 0,
+                      }
+                }
+                transition={{
+                  duration: 2,
+                  repeat: isChatActive ? Infinity : 0,
+                  repeatDelay: 1,
+                  ease: "easeInOut",
+                }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <MessageCircle size={22} strokeWidth={isChatActive ? 2.5 : 1.5} />
+              </motion.div>
+            </Link>
+          )}
 
           {/* Create Post Button - Center */}
           {isLoggedIn ? (
@@ -549,7 +606,7 @@ export default function Layout() {
         <div className="max-w-7xl mx-auto px-6">
           {/* Desktop: Full layout */}
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-6">
-            <div className="flex flex-col md:items-start gap-1.5 md:gap-2">
+            <div className="flex flex-row items-center gap-1.5 md:gap-2">
               <Link
                 to="/dashboard/all"
                 className="flex items-center gap-1.5 md:gap-2"
@@ -561,47 +618,8 @@ export default function Layout() {
                 />
               </Link>
               <p className="text-sm text-slate-400 dark:text-slate-500 italic">
-                Keep it simple. Keep it posts.
+                {_("footer.slogan")}
               </p>
-            </div>
-
-            <div className="flex gap-4 md:gap-6 text-sm text-slate-500 dark:text-slate-400">
-              <Link
-                to="/dashboard/all"
-                className="hover:text-slate-900 dark:hover:text-white"
-              >
-                Home
-              </Link>
-              <a
-                href="#"
-                className="hover:text-slate-900 dark:hover:text-white"
-              >
-                About
-              </a>
-              <a
-                href="#"
-                className="hover:text-slate-900 dark:hover:text-white"
-              >
-                Contact
-              </a>
-            </div>
-
-            <div className="flex gap-3 md:gap-4 text-slate-400 dark:text-slate-400">
-              <Twitter
-                size={20}
-                className="hover:text-slate-900 dark:hover:text-white cursor-pointer"
-              />
-              <div className="hover:text-slate-900 dark:hover:text-white cursor-pointer font-bold text-base">
-                M
-              </div>
-              <Linkedin
-                size={20}
-                className="hover:text-slate-900 dark:hover:text-white cursor-pointer"
-              />
-            </div>
-
-            <div className="text-xs text-slate-400 dark:text-slate-600">
-              Privacy Resgerted
             </div>
           </div>
         </div>

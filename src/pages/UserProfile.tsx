@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { motion } from "framer-motion";
+import { useLingui } from "@lingui/react";
 
 type TabType = "posts" | "followers" | "following";
 
@@ -33,6 +34,7 @@ export default function UserProfile() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { currentUser } = useOutletContext<LayoutContext>();
+  const { _ } = useLingui();
   const [profile, setProfile] = useState<UserProfileType | null>(null);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -105,7 +107,7 @@ export default function UserProfile() {
 
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("Please login to follow users");
+      alert(_("userProfile.loginToFollow"));
       return;
     }
 
@@ -138,7 +140,7 @@ export default function UserProfile() {
           className="mx-auto text-slate-300 dark:text-slate-600 mb-4"
         />
         <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-          User not found
+          {_("userProfile.userNotFound")}
         </h2>
       </div>
     );
@@ -152,7 +154,7 @@ export default function UserProfile() {
         className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white mb-4 sm:mb-6 transition-colors"
       >
         <ArrowLeft size={18} />
-        <span className="text-sm font-medium">Back</span>
+        <span className="text-sm font-medium">{_("common.back")}</span>
       </button>
 
       {/* Profile Header */}
@@ -193,12 +195,12 @@ export default function UserProfile() {
                 {following ? (
                   <>
                     <UserMinus size={14} />
-                    Following
+                    {_("userProfile.following")}
                   </>
                 ) : (
                   <>
                     <UserPlus size={14} />
-                    Follow
+                    {_("userProfile.follow")}
                   </>
                 )}
               </button>
@@ -220,7 +222,8 @@ export default function UserProfile() {
                     )}
                     <span className="flex items-center gap-1">
                       <Calendar size={12} className="sm:w-[14px] sm:h-[14px]" />
-                      Joined {new Date(profile.createdAt).toLocaleDateString()}
+                      {_("profile.joined")}{" "}
+                      {new Date(profile.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
@@ -237,12 +240,12 @@ export default function UserProfile() {
                   {following ? (
                     <>
                       <UserMinus size={18} />
-                      Following
+                      {_("userProfile.following")}
                     </>
                   ) : (
                     <>
                       <UserPlus size={18} />
-                      Follow
+                      {_("userProfile.follow")}
                     </>
                   )}
                 </button>
@@ -264,7 +267,9 @@ export default function UserProfile() {
                   <span className="font-semibold text-slate-900 dark:text-white">
                     {profile.followersCount}
                   </span>
-                  <span className="text-slate-500">followers</span>
+                  <span className="text-slate-500">
+                    {_("profile.followers")}
+                  </span>
                 </button>
                 <button
                   onClick={() => setActiveTab("following")}
@@ -273,7 +278,9 @@ export default function UserProfile() {
                   <span className="font-semibold text-slate-900 dark:text-white">
                     {profile.followingCount}
                   </span>
-                  <span className="text-slate-500">following</span>
+                  <span className="text-slate-500">
+                    {_("profile.following")}
+                  </span>
                 </button>
                 {stats && (
                   <>
@@ -283,7 +290,7 @@ export default function UserProfile() {
                         {stats.likesReceived}
                       </span>
                       <span className="text-slate-500 hidden sm:inline">
-                        likes
+                        {_("userProfile.likes")}
                       </span>
                     </div>
                     <div className="flex items-center gap-1 sm:gap-1.5">
@@ -292,7 +299,7 @@ export default function UserProfile() {
                         {stats.favoritesReceived}
                       </span>
                       <span className="text-slate-500 hidden sm:inline">
-                        saves
+                        {_("userProfile.saves")}
                       </span>
                     </div>
                   </>
@@ -313,7 +320,7 @@ export default function UserProfile() {
               : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
           }`}
         >
-          Posts ({profile.postsCount})
+          {_("userProfile.posts")} ({profile.postsCount})
         </button>
         <button
           onClick={() => setActiveTab("followers")}
@@ -323,7 +330,7 @@ export default function UserProfile() {
               : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
           }`}
         >
-          Followers ({profile.followersCount})
+          {_("tabs.followers")} ({profile.followersCount})
         </button>
         <button
           onClick={() => setActiveTab("following")}
@@ -333,7 +340,7 @@ export default function UserProfile() {
               : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
           }`}
         >
-          Following ({profile.followingCount})
+          {_("tabs.following")} ({profile.followingCount})
         </button>
       </div>
 
@@ -354,7 +361,7 @@ export default function UserProfile() {
                     className="mx-auto text-slate-300 dark:text-slate-600 mb-4"
                   />
                   <p className="text-slate-500 dark:text-slate-400">
-                    No posts yet
+                    {_("userProfile.noPosts")}
                   </p>
                 </div>
               ) : (
@@ -408,7 +415,7 @@ export default function UserProfile() {
                     className="mx-auto text-slate-300 dark:text-slate-600 mb-4"
                   />
                   <p className="text-slate-500 dark:text-slate-400">
-                    No followers yet
+                    {_("userProfile.noFollowers")}
                   </p>
                 </div>
               ) : (
@@ -455,7 +462,7 @@ export default function UserProfile() {
                     className="mx-auto text-slate-300 dark:text-slate-600 mb-4"
                   />
                   <p className="text-slate-500 dark:text-slate-400">
-                    Not following anyone yet
+                    {_("userProfile.noFollowing")}
                   </p>
                 </div>
               ) : (

@@ -5,6 +5,7 @@ import { api } from '../lib/api';
 import { ArrowLeft, Save } from 'lucide-react';
 import RichTextEditor from '../components/RichTextEditor';
 import ImageUploader from '../components/ImageUploader';
+import { useLingui } from '@lingui/react';
 
 interface PostFormData {
   title: string;
@@ -21,6 +22,7 @@ const CLOUDINARY_CONFIG = {
 export default function PostEditor() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { _ } = useLingui();
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<PostFormData>({
     mode: 'onChange',
   });
@@ -40,11 +42,11 @@ export default function PostEditor() {
         setValue('published', published);
         setCoverUrls(existingCovers || []);
       }).catch(() => {
-        alert('Failed to load post');
+        alert(_('editor.loadFailed'));
         navigate('/dashboard/my');
       });
     }
-  }, [id, isEditMode, navigate, setValue]);
+  }, [id, isEditMode, navigate, setValue, _]);
 
   const onSubmit = async (data: PostFormData) => {
     // Validate content
@@ -53,7 +55,7 @@ export default function PostEditor() {
     const textContent = htmlContent.replace(/<[^>]*>/g, '').trim();
     
     if (!textContent) {
-      setContentError('Content is required');
+      setContentError(_('editor.contentRequired'));
       return;
     }
     
@@ -73,7 +75,7 @@ export default function PostEditor() {
       }
       navigate('/dashboard/my');
     } catch (err) {
-      alert('Failed to save post');
+      alert(_('editor.saveFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -89,21 +91,21 @@ export default function PostEditor() {
           <ArrowLeft size={20} className="sm:w-6 sm:h-6" />
         </button>
         <h1 className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white">
-          {isEditMode ? 'Edit Post' : 'Create New Post'}
+          {isEditMode ? _('editor.editPost') : _('editor.createPost')}
         </h1>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="bg-white dark:bg-[#161616] rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-8 space-y-4 sm:space-y-6">
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-            Title <span className="text-red-500">*</span>
+            {_('editor.title')} <span className="text-red-500">*</span>
           </label>
           <input
             {...register('title', { 
-              required: 'Title is required',
+              required: _('editor.titleRequired'),
               minLength: {
                 value: 1,
-                message: 'Title cannot be empty'
+                message: _('editor.titleEmpty')
               }
             })}
             type="text"
@@ -112,7 +114,7 @@ export default function PostEditor() {
                 ? 'border-red-500 dark:border-red-500' 
                 : 'border-slate-200 dark:border-slate-800'
             }`}
-            placeholder="Enter post title"
+            placeholder={_('editor.titlePlaceholder')}
           />
           {errors.title && (
             <p className="mt-1 text-sm text-red-500">{errors.title.message}</p>
@@ -121,7 +123,7 @@ export default function PostEditor() {
 
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-            Content <span className="text-red-500">*</span>
+            {_('editor.content')} <span className="text-red-500">*</span>
           </label>
           <div className={contentError ? 'border border-red-500 dark:border-red-500 rounded-xl' : ''}>
             <RichTextEditor
@@ -137,7 +139,7 @@ export default function PostEditor() {
                   }
                 }
               }}
-              placeholder="Write your content here..."
+              placeholder={_('editor.contentPlaceholder')}
             />
           </div>
           {contentError && (
@@ -147,7 +149,7 @@ export default function PostEditor() {
 
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-            Cover Images (Optional)
+            {_('editor.coverImages')}
           </label>
           <ImageUploader
             images={coverUrls}
@@ -165,7 +167,7 @@ export default function PostEditor() {
             className="h-5 w-5 text-black dark:text-slate-200 focus:ring-black dark:ring-slate-800 border-slate-300 dark:border-slate-600 rounded dark:bg-slate-700"
           />
           <label htmlFor="published" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
-            Publish immediately
+            {_('editor.publishImmediately')}
           </label>
         </div>
 
@@ -176,7 +178,7 @@ export default function PostEditor() {
             className="flex items-center gap-2 px-6 py-3 bg-black dark:bg-white dark:text-black hover:bg-slate-900 dark:hover:bg-slate-100 disabled:opacity-50 text-white font-medium rounded-xl transition-all"
           >
             <Save size={18} />
-            {isLoading ? 'Saving...' : 'Save Post'}
+            {isLoading ? _('editor.saving') : _('editor.savePost')}
           </button>
         </div>
       </form>

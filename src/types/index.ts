@@ -81,3 +81,61 @@ export interface UpdatePostDto {
   published?: boolean;
   coverUrls?: string[];
 }
+
+// ==================== Chat Types ====================
+
+export type ConversationType = 'PRIVATE' | 'GROUP';
+export type MessageType = 'TEXT' | 'IMAGE' | 'SYSTEM';
+export type MemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
+
+export interface ConversationMember {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  role?: MemberRole;
+}
+
+export interface Message {
+  id: string;
+  content: string;
+  type: MessageType;
+  senderId: string;
+  sender: {
+    id: string;
+    name: string;
+    avatar?: string;
+  };
+  conversationId: string;
+  createdAt: string;
+}
+
+export interface Conversation {
+  id: string;
+  type: ConversationType;
+  name: string;
+  avatar?: string;
+  members: ConversationMember[];
+  otherUser?: ConversationMember; // For private chats
+  lastMessage?: Message;
+  myRole?: MemberRole;
+  ownerId?: string;
+  unreadCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePrivateConversationDto {
+  userId: string;
+}
+
+export interface CreateGroupConversationDto {
+  name: string;
+  avatar?: string;
+  memberIds: string[];
+}
+
+export interface SendMessageDto {
+  content: string;
+  type?: MessageType;
+}

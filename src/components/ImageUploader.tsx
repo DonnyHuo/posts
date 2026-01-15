@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
-import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Loader2, RefreshCw } from 'lucide-react';
+import { useLingui } from '@lingui/react';
 
 interface ImageUploaderProps {
   images: string[];
@@ -17,9 +18,12 @@ export default function ImageUploader({
   maxImages = 5,
   cloudinaryConfig,
 }: ImageUploaderProps) {
+  const { _ } = useLingui();
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [replaceIndex, setReplaceIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const replaceInputRef = useRef<HTMLInputElement>(null);
 
   const uploadToCloudinary = async (file: File): Promise<string | null> => {
     const formData = new FormData();
@@ -53,7 +57,7 @@ export default function ImageUploader({
     const filesToUpload = fileArray.slice(0, remainingSlots);
 
     if (filesToUpload.length === 0) {
-      alert(`Maximum ${maxImages} images allowed`);
+      alert(_("imageUploader.maxImages", { count: maxImages }));
       return;
     }
 
@@ -108,8 +112,42 @@ export default function ImageUploader({
     onChange(newImages);
   };
 
+  const handleReplaceImage = async (file: File, index: number) => {
+    setUploading(true);
+    const url = await uploadToCloudinary(file);
+    if (url) {
+      const newImages = [...images];
+      newImages[index] = url;
+      onChange(newImages);
+    }
+    setUploading(false);
+    setReplaceIndex(null);
+  };
+
+  const handleReplaceInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0 && replaceIndex !== null) {
+      handleReplaceImage(e.target.files[0], replaceIndex);
+    }
+    // Reset input value to allow selecting the same file again
+    e.target.value = '';
+  };
+
+  const triggerReplace = (index: number) => {
+    setReplaceIndex(index);
+    replaceInputRef.current?.click();
+  };
+
   return (
     <div className="space-y-4">
+      {/* Hidden input for replacing images */}
+      <input
+        ref={replaceInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleReplaceInputChange}
+        className="hidden"
+      />
+
       {/* Upload Area */}
       <div
         onDragEnter={handleDrag}
@@ -135,17 +173,17 @@ export default function ImageUploader({
         {uploading ? (
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="w-8 h-8 text-green-500 animate-spin" />
-            <span className="text-sm text-slate-600 dark:text-slate-400">Uploading...</span>
+            <span className="text-sm text-slate-600 dark:text-slate-400">{_("imageUploader.uploading")}</span>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
             <Upload className="w-8 h-8 text-slate-400 dark:text-slate-500" />
             <div className="text-sm text-slate-600 dark:text-slate-400">
-              <span className="font-medium text-green-600 dark:text-green-400">Click to upload</span>
-              {' '}or drag and drop
+              <span className="font-medium text-green-600 dark:text-green-400">{_("imageUploader.clickToUpload")}</span>
+              {' '}{_("imageUploader.orDragDrop")}
             </div>
             <span className="text-xs text-slate-500 dark:text-slate-500">
-              PNG, JPG, GIF up to 10MB ({images.length}/{maxImages})
+              {_("imageUploader.fileTypes")} ({images.length}/{maxImages})
             </span>
           </div>
         )}
@@ -157,24 +195,82 @@ export default function ImageUploader({
           {images.map((url, index) => (
             <div
               key={url}
-              className="relative group aspect-video rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+              className="relative group rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
             >
-              <img
-                src={url}
-                alt={`Cover ${index + 1}`}
-                className="w-full h-full object-cover"
-              />
-              
-              {/* First image badge */}
-              {index === 0 && (
-                <span className="absolute top-2 left-2 bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
-                  COVER
-                </span>
-              )}
+              {/* Image container */}
+              <div className="aspect-video relative">
+                <img
+                  src={url}
+                  alt={`Cover ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                
+                {/* First image badge */}
+                {index === 0 && (
+                  <span className="absolute top-2 left-2 bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                    {_("imageUploader.cover")}
+                  </span>
+                )}
 
-              {/* Actions */}
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                {/* Move left */}
+                {/* Desktop hover actions overlay */}
+                <div className="hidden sm:flex absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center gap-2">
+                  {index > 0 && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        moveImage(index, index - 1);
+                      }}
+                      className="p-1.5 bg-white/90 rounded-full text-slate-700 hover:bg-white transition-colors"
+                      title={_("imageUploader.moveLeft")}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      triggerReplace(index);
+                    }}
+                    className="p-1.5 bg-blue-500 rounded-full text-white hover:bg-blue-600 transition-colors"
+                    title={_("imageUploader.replace")}
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+                  {index < images.length - 1 && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        moveImage(index, index + 1);
+                      }}
+                      className="p-1.5 bg-white/90 rounded-full text-slate-700 hover:bg-white transition-colors"
+                      title={_("imageUploader.moveRight")}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeImage(index);
+                    }}
+                    className="p-1.5 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
+                    title={_("imageUploader.remove")}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Mobile action buttons - always visible */}
+              <div className="flex sm:hidden items-center justify-center gap-1 p-1.5 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700">
                 {index > 0 && (
                   <button
                     type="button"
@@ -182,16 +278,23 @@ export default function ImageUploader({
                       e.stopPropagation();
                       moveImage(index, index - 1);
                     }}
-                    className="p-1.5 bg-white/90 rounded-full text-slate-700 hover:bg-white transition-colors"
-                    title="Move left"
+                    className="p-1.5 rounded-md bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 active:bg-slate-300 dark:active:bg-slate-600"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
                   </button>
                 )}
-
-                {/* Move right */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    triggerReplace(index);
+                  }}
+                  className="p-1.5 rounded-md bg-blue-500 text-white active:bg-blue-600"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                </button>
                 {index < images.length - 1 && (
                   <button
                     type="button"
@@ -199,26 +302,22 @@ export default function ImageUploader({
                       e.stopPropagation();
                       moveImage(index, index + 1);
                     }}
-                    className="p-1.5 bg-white/90 rounded-full text-slate-700 hover:bg-white transition-colors"
-                    title="Move right"
+                    className="p-1.5 rounded-md bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 active:bg-slate-300 dark:active:bg-slate-600"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
                 )}
-
-                {/* Remove */}
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     removeImage(index);
                   }}
-                  className="p-1.5 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
-                  title="Remove"
+                  className="p-1.5 rounded-md bg-red-500 text-white active:bg-red-600"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -231,7 +330,7 @@ export default function ImageUploader({
               className="aspect-video rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center cursor-pointer hover:border-slate-400 dark:hover:border-slate-600 transition-colors bg-slate-50 dark:bg-slate-900"
             >
               <ImageIcon className="w-6 h-6 text-slate-400 dark:text-slate-500 mb-1" />
-              <span className="text-xs text-slate-500 dark:text-slate-400">Add more</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">{_("imageUploader.addMore")}</span>
             </div>
           )}
         </div>
@@ -239,7 +338,7 @@ export default function ImageUploader({
 
       {/* Help text */}
       <p className="text-xs text-slate-500 dark:text-slate-400">
-        First image will be used as the main cover. Leave empty for auto-generated cover.
+        {_("imageUploader.helpText")}
       </p>
     </div>
   );

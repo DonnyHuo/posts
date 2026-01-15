@@ -12,6 +12,7 @@ import UserProfile from "./pages/UserProfile";
 import Layout from "./components/Layout";
 import PostFeed from "./pages/PostFeed";
 import SearchResults from "./pages/SearchResults";
+import Chat from "./pages/Chat";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const token = localStorage.getItem("token");
@@ -83,6 +84,16 @@ function App() {
 
           {/* User Profile 页面 - 公开（查看他人主页） */}
           <Route path="user/:userId" element={<UserProfile />} />
+
+          {/* Chat 页面 - 需要登录 */}
+          <Route
+            path="chat"
+            element={
+              <ProtectedRoute>
+                <Chat />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Post 详情页 - 公开 */}
           <Route path="posts/:id" element={<PostDetail />} />

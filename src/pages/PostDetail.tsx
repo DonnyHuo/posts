@@ -18,6 +18,8 @@ import {
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import CommentSection from "../components/CommentSection";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLingui } from "@lingui/react";
+import { useLocale } from "../hooks/useLocale";
 
 interface LayoutContext {
   currentUser: User | null;
@@ -28,6 +30,8 @@ export default function PostDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { currentUser, openAuthModal } = useOutletContext<LayoutContext>();
+  const { _ } = useLingui();
+  const { locale } = useLocale();
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -52,7 +56,7 @@ export default function PostDetail() {
         setFavoriteCount(res.data._count?.favorites || 0);
       } catch (err) {
         console.error("Failed to fetch post", err);
-        setError("Article not found or has been removed.");
+        setError(_("postDetail.notFoundOrRemoved"));
       } finally {
         setLoading(false);
       }
@@ -78,7 +82,7 @@ export default function PostDetail() {
     } else {
       // Fallback: copy to clipboard
       navigator.clipboard.writeText(window.location.href);
-      alert("Link copied to clipboard!");
+      alert(_("postDetail.linkCopied"));
     }
   };
 
@@ -100,7 +104,7 @@ export default function PostDetail() {
       }
     } catch (err) {
       console.error("Failed to toggle like", err);
-      alert("Please login to like posts");
+      alert(_("postDetail.loginToLike"));
     }
   };
 
@@ -122,7 +126,7 @@ export default function PostDetail() {
       }
     } catch (err) {
       console.error("Failed to toggle favorite", err);
-      alert("Please login to favorite posts");
+      alert(_("postDetail.loginToSave"));
     }
   };
 
@@ -135,14 +139,14 @@ export default function PostDetail() {
       <div className="max-w-3xl mx-auto text-center py-20">
         <div className="text-6xl mb-4 opacity-50">😕</div>
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
-          {error || "Article not found"}
+          {error || _("postDetail.notFound")}
         </h2>
         <button
           onClick={() => navigate("/dashboard/all")}
           className="inline-flex items-center gap-2 px-6 py-3 bg-black hover:bg-slate-900 text-white font-medium rounded-xl transition-all"
         >
           <ArrowLeft size={18} />
-          Back to Home
+          {_("postDetail.backToHome")}
         </button>
       </div>
     );
@@ -165,7 +169,7 @@ export default function PostDetail() {
           size={20}
           className="group-hover:-translate-x-1 transition-transform"
         />
-        <span className="font-medium">Back</span>
+        <span className="font-medium">{_("common.back")}</span>
       </button>
 
       {/* Article Header */}
@@ -269,12 +273,12 @@ export default function PostDetail() {
               )}
               <div>
                 <p className="text-sm font-semibold text-slate-900 dark:text-white hover:text-green-600 dark:hover:text-green-400 transition-colors">
-                  {post.author?.name || "Anonymous"}
+                  {post.author?.name || _("postList.anonymous")}
                 </p>
                 <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
                   <span className="flex items-center gap-1">
                     <Calendar size={12} className="sm:w-3.5 sm:h-3.5" />
-                    {new Date(post.createdAt).toLocaleDateString("en-US", {
+                    {new Date(post.createdAt).toLocaleDateString(locale === "zh" ? "zh-CN" : "en-US", {
                       year: "numeric",
                       month: "long",
                       day: "numeric",
@@ -282,7 +286,7 @@ export default function PostDetail() {
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock size={12} className="sm:w-3.5 sm:h-3.5" />
-                    {Math.ceil(post.content.length / 1000)} min read
+                    {Math.ceil(post.content.length / 1000)} {_("postDetail.minRead")}
                   </span>
                 </div>
               </div>
@@ -295,7 +299,7 @@ export default function PostDetail() {
                 className="flex items-center gap-2 px-3 sm:px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
               >
                 <Share2 size={18} className="sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Share</span>
+                <span className="hidden sm:inline">{_("postDetail.share")}</span>
               </button>
               {isAuthor && (
                 <Link
@@ -303,7 +307,7 @@ export default function PostDetail() {
                   className="flex items-center gap-2 px-3 sm:px-4 py-2 text-sm font-medium text-white bg-black hover:bg-slate-900 rounded-xl transition-all"
                 >
                   <Edit size={18} className="sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">Edit</span>
+                  <span className="hidden sm:inline">{_("postDetail.edit")}</span>
                 </Link>
               )}
             </div>
@@ -314,7 +318,7 @@ export default function PostDetail() {
         <div className="px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6">
           {!post.published && (
             <span className="inline-block mb-4 bg-yellow-100 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 text-xs font-bold px-3 py-1 rounded uppercase tracking-wide border border-yellow-200 dark:border-yellow-500/20">
-              Draft
+              {_("posts.draft")}
             </span>
           )}
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 dark:text-white leading-tight">
@@ -373,7 +377,7 @@ export default function PostDetail() {
       {/* Comments Section */}
       <div className="mt-6 sm:mt-8 bg-white dark:bg-[#161616] rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-8">
         <h2 className="text-base sm:text-xl font-bold text-slate-900 dark:text-white mb-4 sm:mb-6">
-          Comments ({commentCount})
+          {_("postDetail.comments")} ({commentCount})
         </h2>
         <CommentSection
           postId={post.id}

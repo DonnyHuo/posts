@@ -3,6 +3,7 @@ import { Plus, Search, X } from "lucide-react";
 import PostList from "../components/PostList";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { useLingui } from "@lingui/react";
 
 interface PostFeedProps {
   mode: "my" | "all" | "liked" | "favorited" | "commented";
@@ -14,6 +15,7 @@ export default function PostFeed({ mode }: PostFeedProps) {
   const [publishFilter, setPublishFilter] = useState<
     "all" | "published" | "draft"
   >("all");
+  const { _ } = useLingui();
   const isMyPosts = mode === "my";
   const isLikedPosts = mode === "liked";
   const isFavoritedPosts = mode === "favorited";
@@ -28,28 +30,28 @@ export default function PostFeed({ mode }: PostFeedProps) {
   const getTitle = () => {
     switch (mode) {
       case "my":
-        return "My Posts";
+        return _("posts.myPosts");
       case "liked":
-        return "Liked Posts";
+        return _("posts.likedPosts");
       case "favorited":
-        return "Saved Posts";
+        return _("posts.savedPosts");
       case "commented":
-        return "Commented Posts";
+        return _("posts.commentedPosts");
       default:
-        return "Latest Articles";
+        return _("posts.latestArticles");
     }
   };
 
   const getSubtitle = () => {
     switch (mode) {
       case "my":
-        return "Manage your content";
+        return _("posts.manageContent");
       case "liked":
-        return "Posts you've liked";
+        return _("posts.likedSubtitle");
       case "favorited":
-        return "Posts you've saved for later";
+        return _("posts.savedSubtitle");
       case "commented":
-        return "Posts you've commented on";
+        return _("posts.commentedSubtitle");
       default:
         return null;
     }
@@ -125,7 +127,7 @@ export default function PostFeed({ mode }: PostFeedProps) {
               transition={{ delay: 0.1 }}
               className="text-black dark:text-slate-300 font-medium mb-4 tracking-wide"
             >
-              Keep it simple. Keep it posts.
+              {_("hero.slogan")}
             </motion.p>
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
@@ -133,7 +135,7 @@ export default function PostFeed({ mode }: PostFeedProps) {
               transition={{ delay: 0.2 }}
               className="text-3xl md:text-5xl font-serif font-bold text-slate-900 dark:text-white mb-4 leading-tight"
             >
-              Ideas That Shape Tomorrow
+              {_("hero.title")}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -141,8 +143,7 @@ export default function PostFeed({ mode }: PostFeedProps) {
               transition={{ delay: 0.3 }}
               className="text-slate-600 dark:text-slate-400 text-base md:text-lg max-w-lg"
             >
-              A collection of thoughts, news, and insights on tech, design and
-              life.
+              {_("hero.description")}
             </motion.p>
           </div>
 
@@ -183,8 +184,8 @@ export default function PostFeed({ mode }: PostFeedProps) {
                 size={16}
                 className="sm:w-[18px] sm:h-[18px] mr-1 sm:mr-2"
               />
-              <span className="hidden sm:inline">New Post</span>
-              <span className="sm:hidden">New</span>
+              <span className="hidden sm:inline">{_("posts.newPost")}</span>
+              <span className="sm:hidden">{_("posts.new")}</span>
             </Link>
           )}
 
@@ -203,7 +204,7 @@ export default function PostFeed({ mode }: PostFeedProps) {
                   type="text"
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
-                  placeholder="Search posts..."
+                  placeholder={_("posts.searchPlaceholder")}
                   className="w-full bg-white dark:bg-[#161616] border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:ring-slate-800 focus:border-transparent placeholder-slate-500 dark:placeholder-slate-600"
                 />
               </form>
@@ -230,7 +231,7 @@ export default function PostFeed({ mode }: PostFeedProps) {
                           type="text"
                           value={searchKeyword}
                           onChange={(e) => setSearchKeyword(e.target.value)}
-                          placeholder="Search posts..."
+                          placeholder={_("posts.searchPlaceholder")}
                           autoFocus
                           className="ml-3 bg-transparent text-slate-900 dark:text-white focus:outline-none placeholder-slate-500 dark:placeholder-slate-600 w-full"
                         />
@@ -270,7 +271,7 @@ export default function PostFeed({ mode }: PostFeedProps) {
                   : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
               }`}
             >
-              All
+              {_("posts.all")}
             </button>
             <button
               onClick={() => setPublishFilter("published")}
@@ -280,7 +281,7 @@ export default function PostFeed({ mode }: PostFeedProps) {
                   : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
               }`}
             >
-              Published
+              {_("posts.published")}
             </button>
             <button
               onClick={() => setPublishFilter("draft")}
@@ -290,7 +291,7 @@ export default function PostFeed({ mode }: PostFeedProps) {
                   : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
               }`}
             >
-              Draft
+              {_("posts.draft")}
             </button>
           </div>
         )}

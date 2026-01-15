@@ -1,0 +1,206 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-01-15\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh\n"
+
+#: Common
+msgid "common.back"
+msgstr "返回"
+
+msgid "common.save"
+msgstr "保存"
+
+msgid "common.cancel"
+msgstr "取消"
+
+msgid "common.loading"
+msgstr "加载中..."
+
+msgid "common.error"
+msgstr "错误"
+
+msgid "common.success"
+msgstr "成功"
+
+#: Navigation
+msgid "nav.home"
+msgstr "首页"
+
+msgid "nav.myPosts"
+msgstr "我的文章"
+
+msgid "nav.profile"
+msgstr "个人主页"
+
+msgid "nav.signIn"
+msgstr "登录"
+
+msgid "nav.signOut"
+msgstr "退出登录"
+
+#: Profile
+msgid "profile.editProfile"
+msgstr "编辑资料"
+
+msgid "profile.settings"
+msgstr "设置"
+
+msgid "profile.followers"
+msgstr "粉丝"
+
+msgid "profile.following"
+msgstr "关注"
+
+msgid "profile.likesReceived"
+msgstr "获赞"
+
+msgid "profile.savesReceived"
+msgstr "被收藏"
+
+msgid "profile.joined"
+msgstr "加入于"
+
+msgid "profile.displayName"
+msgstr "显示名称"
+
+msgid "profile.bio"
+msgstr "个性签名"
+
+msgid "profile.avatar"
+msgstr "头像"
+
+msgid "profile.updateSuccess"
+msgstr "资料更新成功！"
+
+msgid "profile.updateFailed"
+msgstr "资料更新失败"
+
+#: Settings
+msgid "settings.title"
+msgstr "设置"
+
+msgid "settings.theme"
+msgstr "主题"
+
+msgid "settings.darkMode"
+msgstr "深色模式"
+
+msgid "settings.lightMode"
+msgstr "浅色模式"
+
+msgid "settings.language"
+msgstr "语言"
+
+#: Posts
+msgid "posts.latestArticles"
+msgstr "最新文章"
+
+msgid "posts.myPosts"
+msgstr "我的文章"
+
+msgid "posts.newPost"
+msgstr "发布文章"
+
+msgid "posts.new"
+msgstr "发布"
+
+msgid "posts.all"
+msgstr "全部"
+
+msgid "posts.published"
+msgstr "已发布"
+
+msgid "posts.draft"
+msgstr "草稿"
+
+msgid "posts.noPosts"
+msgstr "暂无文章"
+
+msgid "posts.createFirst"
+msgstr "创建你的第一篇文章"
+
+msgid "posts.searchPlaceholder"
+msgstr "搜索文章..."
+
+#: Post Editor
+msgid "editor.title"
+msgstr "标题"
+
+msgid "editor.titlePlaceholder"
+msgstr "输入文章标题..."
+
+msgid "editor.content"
+msgstr "内容"
+
+msgid "editor.contentPlaceholder"
+msgstr "在这里写下你的内容..."
+
+msgid "editor.coverImages"
+msgstr "封面图片"
+
+msgid "editor.saveDraft"
+msgstr "保存草稿"
+
+msgid "editor.publish"
+msgstr "发布"
+
+msgid "editor.update"
+msgstr "更新"
+
+msgid "editor.required"
+msgstr "必填"
+
+#: User Profile
+msgid "userProfile.follow"
+msgstr "关注"
+
+msgid "userProfile.following"
+msgstr "已关注"
+
+msgid "userProfile.posts"
+msgstr "文章"
+
+msgid "userProfile.userNotFound"
+msgstr "用户不存在"
+
+#: Tabs
+msgid "tabs.liked"
+msgstr "点赞"
+
+msgid "tabs.saved"
+msgstr "收藏"
+
+msgid "tabs.commented"
+msgstr "评论"
+
+#: Auth
+msgid "auth.signIn"
+msgstr "登录"
+
+msgid "auth.signUp"
+msgstr "注册"
+
+msgid "auth.email"
+msgstr "邮箱"
+
+msgid "auth.password"
+msgstr "密码"
+
+msgid "auth.name"
+msgstr "用户名"
+
+msgid "auth.confirmPassword"
+msgstr "确认密码"
+
+msgid "auth.forgotPassword"
+msgstr "忘记密码？"
+
+msgid "auth.noAccount"
+msgstr "还没有账号？"
+
+msgid "auth.hasAccount"
+msgstr "已有账号？"
+
