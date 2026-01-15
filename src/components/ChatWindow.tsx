@@ -2,6 +2,8 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { api } from "../lib/api";
 import type { Message, Conversation } from "../types";
 import { useConversationChannel } from "../hooks/usePusher";
+import { useLocale } from "../hooks/useLocale";
+import { useTheme } from "../hooks/useTheme";
 import { format, isToday, isYesterday } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import {
@@ -14,7 +16,13 @@ import {
   Smile,
   X,
   Loader2,
+  Search,
 } from "lucide-react";
+import { GiphyFetch } from "@giphy/js-fetch-api";
+import { Grid } from "@giphy/react-components";
+import type { IGif } from "@giphy/js-types";
+import Picker from "@emoji-mart/react";
+import data from "@emoji-mart/data";
 
 // Cloudinary configuration
 const CLOUDINARY_CONFIG = {
@@ -23,108 +31,9 @@ const CLOUDINARY_CONFIG = {
     import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "unsigned_preset",
 };
 
-// Common emojis
-const EMOJI_LIST = [
-  // Smileys
-  "😀",
-  "😃",
-  "😄",
-  "😁",
-  "😅",
-  "😂",
-  "🤣",
-  "😊",
-  "😇",
-  "🙂",
-  "😉",
-  "😌",
-  "😍",
-  "🥰",
-  "😘",
-  "😗",
-  "😋",
-  "😛",
-  "😜",
-  "🤪",
-  "😝",
-  "🤑",
-  "🤗",
-  "🤭",
-  "🤔",
-  "🤐",
-  "🤨",
-  "😐",
-  "😑",
-  "😶",
-  "😏",
-  "😒",
-  "🙄",
-  "😬",
-  "😮",
-  "😯",
-  "😲",
-  "😳",
-  "🥺",
-  "😢",
-  "😭",
-  "😤",
-  "😠",
-  "😡",
-  "🤬",
-  "😈",
-  "👿",
-  "💀",
-  // Gestures
-  "👍",
-  "👎",
-  "👌",
-  "✌️",
-  "🤞",
-  "🤟",
-  "🤘",
-  "🤙",
-  "👋",
-  "🤚",
-  "🖐️",
-  "✋",
-  "🖖",
-  "👏",
-  "🙌",
-  "🤝",
-  "🙏",
-  "💪",
-  "🦾",
-  "❤️",
-  "🧡",
-  "💛",
-  "💚",
-  "💙",
-  "💜",
-  "🖤",
-  "🤍",
-  "💯",
-  "💢",
-  "💥",
-  "💫",
-  "💦",
-  // Objects
-  "🎉",
-  "🎊",
-  "🎁",
-  "🎈",
-  "✨",
-  "🌟",
-  "⭐",
-  "🔥",
-  "💡",
-  "💰",
-  "🎵",
-  "🎶",
-  "📱",
-  "💻",
-  "🎮",
-  "🏆",
-];
+// Giphy configuration
+const GIPHY_API_KEY = import.meta.env.VITE_GIPHY_API_KEY || "";
+const giphyFetch = new GiphyFetch(GIPHY_API_KEY);
 
 interface ChatWindowProps {
   conversation: Conversation;
@@ -139,6 +48,8 @@ export default function ChatWindow({
   onBack,
   refreshTrigger,
 }: ChatWindowProps) {
+  const { locale } = useLocale();
+  const { theme } = useTheme();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -147,11 +58,25 @@ export default function ChatWindow({
   const [hasMore, setHasMore] = useState(true);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [pickerTab, setPickerTab] = useState<"emoji" | "gif">("emoji");
+  const [gifSearchTerm, setGifSearchTerm] = useState("");
+  const [gifSearchKey, setGifSearchKey] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Fetch messages
   const fetchMessages = useCallback(
@@ -661,30 +586,110 @@ export default function ChatWindow({
         {showEmojiPicker && (
           <div
             ref={emojiPickerRef}
-            className="absolute bottom-20 left-4 right-4 sm:left-auto sm:right-auto sm:w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-3 z-50"
+            className="absolute bottom-20 md:bottom-10  left-2 right-2 sm:left-auto sm:right-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden"
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                表情
-              </span>
+            {/* Main tabs: Emoji / GIF */}
+            <div className="flex items-center border-b border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setPickerTab("emoji")}
+                className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+                  pickerTab === "emoji"
+                    ? "text-indigo-600 border-b-2 border-indigo-600"
+                    : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                }`}
+              >
+                😀 表情
+              </button>
+              <button
+                onClick={() => setPickerTab("gif")}
+                className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+                  pickerTab === "gif"
+                    ? "text-indigo-600 border-b-2 border-indigo-600"
+                    : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                }`}
+              >
+                🎬 GIF
+              </button>
               <button
                 onClick={() => setShowEmojiPicker(false)}
-                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 mx-1"
               >
                 <X className="w-4 h-4 text-gray-500" />
               </button>
             </div>
-            <div className="grid grid-cols-8 gap-1 max-h-48 overflow-y-auto">
-              {EMOJI_LIST.map((emoji, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleEmojiSelect(emoji)}
-                  className="w-8 h-8 flex items-center justify-center text-xl hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
+
+            {/* Emoji Tab - Using emoji-mart */}
+            {pickerTab === "emoji" && (
+              <Picker
+                data={data}
+                onEmojiSelect={(emoji: { native: string }) => {
+                  handleEmojiSelect(emoji.native);
+                }}
+                theme={theme === "dark" ? "dark" : "light"}
+                locale={locale}
+                previewPosition={isMobile ? "none" : "bottom"}
+                skinTonePosition="search"
+                maxFrequentRows={2}
+                perLine={11}
+                emojiSize={30}
+                emojiButtonSize={35}
+              />
+            )}
+
+            {/* GIF Tab */}
+            {pickerTab === "gif" && (
+              <div className="flex flex-col h-120">
+                {/* Search input */}
+                <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      value={gifSearchTerm}
+                      onChange={(e) => setGifSearchTerm(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          setGifSearchKey(gifSearchTerm);
+                        }
+                      }}
+                      placeholder="搜索 GIF..."
+                      className="w-full pl-9 pr-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
+                {/* GIF Grid */}
+                <div className="flex-1 overflow-y-auto p-2">
+                  {GIPHY_API_KEY ? (
+                    <Grid
+                      key={gifSearchKey}
+                      width={460}
+                      columns={3}
+                      gutter={6}
+                      fetchGifs={(offset: number) =>
+                        gifSearchKey
+                          ? giphyFetch.search(gifSearchKey, {
+                              offset,
+                              limit: 10,
+                            })
+                          : giphyFetch.trending({ offset, limit: 10 })
+                      }
+                      onGifClick={(gif: IGif, e: React.SyntheticEvent) => {
+                        e.preventDefault();
+                        const gifUrl = gif.images.fixed_height.url;
+                        sendImageMessage(gifUrl);
+                        setShowEmojiPicker(false);
+                      }}
+                      noLink={true}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400 text-sm">
+                      <p>需要配置 Giphy API Key</p>
+                      <p className="text-xs mt-1">VITE_GIPHY_API_KEY</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

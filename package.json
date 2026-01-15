@@ -12,6 +12,11 @@
     "compile": "lingui compile"
   },
   "dependencies": {
+    "@emoji-mart/data": "^1.2.1",
+    "@emoji-mart/react": "^1.1.1",
+    "@giphy/js-fetch-api": "^5.7.0",
+    "@giphy/js-types": "^5.1.0",
+    "@giphy/react-components": "^10.1.1",
     "@lingui/core": "^5.5.1",
     "@lingui/react": "^5.5.1",
     "@tiptap/extension-image": "^3.15.3",

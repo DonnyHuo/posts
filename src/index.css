@@ -2,13 +2,29 @@
 
 @variant dark (&:where(.dark, .dark *));
 
+
+@font-face {
+  font-family: "Open Sans";
+  src: url("./assets/fonts/OpenSans-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Open Sans";
+  src: url("./assets/fonts/OpenSans-Medium.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Open Sans";
+  src: url("./assets/fonts/OpenSans-Bold.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Open Sans";
+  src: url("./assets/fonts/OpenSans-SemiBold.ttf") format("truetype");
+}
+
 @theme {
   --font-sans: "Open Sans", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Merriweather", "Georgia", serif;
 }
-
-/* Load Fonts via Google Fonts Import */
-@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 
 body {
   font-family: var(--font-sans);
