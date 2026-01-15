@@ -7,6 +7,7 @@ import ChatWindow from "../components/ChatWindow";
 import NewChatModal from "../components/NewChatModal";
 import { MessageSquare } from "lucide-react";
 import { useUserNotifications } from "../hooks/usePusher";
+import { playNotificationSound } from "../utils/sound";
 
 export default function Chat() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -52,6 +53,7 @@ export default function Chat() {
       setListRefreshTrigger((prev) => prev + 1);
 
       // If the message is for the currently selected conversation, trigger chat window refresh
+      // (ChatWindow will play sound for messages in the current conversation)
       if (
         selectedConversation &&
         payload.conversationId === selectedConversation.id
@@ -60,6 +62,10 @@ export default function Chat() {
           "[Chat] Message is for current conversation, triggering refresh"
         );
         setRefreshTrigger((prev) => prev + 1);
+      } else {
+        // Play sound for messages from other conversations
+        // (when user is in chat page but viewing a different conversation)
+        playNotificationSound();
       }
     },
     [selectedConversation]

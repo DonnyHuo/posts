@@ -23,6 +23,7 @@ import { Grid } from "@giphy/react-components";
 import type { IGif } from "@giphy/js-types";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
+import { playNotificationSound } from "../utils/sound";
 
 // Cloudinary configuration
 const CLOUDINARY_CONFIG = {
@@ -195,9 +196,11 @@ export default function ChatWindow({
       return [...prev, messageToAdd];
     });
 
-    // Mark as read if not own message
+    // Mark as read and play sound if not own message
     if (newMsg.senderId !== currentUserId) {
       markAsRead();
+      // Play notification sound for incoming messages
+      playNotificationSound();
     }
   });
 
