@@ -300,15 +300,10 @@ export default function PostDetail() {
     }
 
     try {
-      if (isLiked) {
-        await api.delete(`/posts/${post?.id}/like`);
-        setIsLiked(false);
-        setLikeCount((prev) => Math.max(0, prev - 1));
-      } else {
-        await api.post(`/posts/${post?.id}/like`);
-        setIsLiked(true);
-        setLikeCount((prev) => prev + 1);
-      }
+      const response = await api.post(`/posts/${post?.id}/like`);
+      const { liked, likesCount } = response.data;
+      setIsLiked(liked);
+      setLikeCount(likesCount);
     } catch (err) {
       console.error("Failed to toggle like", err);
       alert(_("postDetail.loginToLike"));
@@ -322,15 +317,10 @@ export default function PostDetail() {
     }
 
     try {
-      if (isFavorited) {
-        await api.delete(`/posts/${post?.id}/favorite`);
-        setIsFavorited(false);
-        setFavoriteCount((prev) => Math.max(0, prev - 1));
-      } else {
-        await api.post(`/posts/${post?.id}/favorite`);
-        setIsFavorited(true);
-        setFavoriteCount((prev) => prev + 1);
-      }
+      const response = await api.post(`/posts/${post?.id}/favorite`);
+      const { favorited, favoritesCount } = response.data;
+      setIsFavorited(favorited);
+      setFavoriteCount(favoritesCount);
     } catch (err) {
       console.error("Failed to toggle favorite", err);
       alert(_("postDetail.loginToSave"));
