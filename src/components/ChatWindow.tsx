@@ -17,7 +17,9 @@ import {
   X,
   Loader2,
   Search,
+  Settings,
 } from "lucide-react";
+import GroupSettingsModal from "./GroupSettingsModal";
 import { GiphyFetch } from "@giphy/js-fetch-api";
 import { Grid } from "@giphy/react-components";
 import type { IGif } from "@giphy/js-types";
@@ -41,6 +43,7 @@ interface ChatWindowProps {
   currentUserId: string;
   onBack?: () => void;
   refreshTrigger?: number; // Increment to trigger refresh
+  onConversationUpdate?: (updated: Conversation) => void;
 }
 
 export default function ChatWindow({
@@ -48,6 +51,7 @@ export default function ChatWindow({
   currentUserId,
   onBack,
   refreshTrigger,
+  onConversationUpdate,
 }: ChatWindowProps) {
   const { locale } = useLocale();
   const { theme } = useTheme();
@@ -63,6 +67,20 @@ export default function ChatWindow({
   const [gifSearchTerm, setGifSearchTerm] = useState("");
   const [gifSearchKey, setGifSearchKey] = useState("");
   const [isMobile, setIsMobile] = useState(false);
+  const [showGroupSettings, setShowGroupSettings] = useState(false);
+  const [currentConversation, setCurrentConversation] =
+    useState<Conversation>(conversation);
+
+  // Update current conversation when prop changes
+  useEffect(() => {
+    setCurrentConversation(conversation);
+  }, [conversation]);
+
+  // Handle conversation update
+  const handleConversationUpdate = (updated: Conversation) => {
+    setCurrentConversation(updated);
+    onConversationUpdate?.(updated);
+  };
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -458,25 +476,25 @@ export default function ChatWindow({
         )}
 
         {/* Avatar */}
-        {conversation.avatar || conversation.otherUser?.avatar ? (
+        {currentConversation.avatar || currentConversation.otherUser?.avatar ? (
           <img
-            src={conversation.avatar || conversation.otherUser?.avatar}
-            alt={conversation.name}
+            src={currentConversation.avatar || currentConversation.otherUser?.avatar}
+            alt={currentConversation.name}
             className="w-10 h-10 rounded-full object-cover"
           />
         ) : (
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold">
-            {conversation.name?.charAt(0)?.toUpperCase() || "?"}
+            {currentConversation.name?.charAt(0)?.toUpperCase() || "?"}
           </div>
         )}
 
         <div className="flex-1">
           <h3 className="font-medium text-gray-900 dark:text-white">
-            {conversation.name}
+            {currentConversation.name}
           </h3>
-          {conversation.type === "GROUP" && (
+          {currentConversation.type === "GROUP" && (
             <p className="text-xs text-gray-500">
-              {conversation.members.length} 位成员
+              {currentConversation.members.length} 位成员
             </p>
           )}
         </div>
@@ -489,11 +507,31 @@ export default function ChatWindow({
           <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500">
             <Video className="w-5 h-5" />
           </button>
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500">
-            <Info className="w-5 h-5" />
-          </button>
+          {currentConversation.type === "GROUP" ? (
+            <button
+              onClick={() => setShowGroupSettings(true)}
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500"
+              title="群设置"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+          ) : (
+            <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500">
+              <Info className="w-5 h-5" />
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Group Settings Modal */}
+      {showGroupSettings && currentConversation.type === "GROUP" && (
+        <GroupSettingsModal
+          conversation={currentConversation}
+          currentUserId={currentUserId}
+          onClose={() => setShowGroupSettings(false)}
+          onUpdate={handleConversationUpdate}
+        />
+      )}
 
       {/* Messages */}
       <div
